@@ -1,0 +1,4616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RESCUE MISSION ULTIMATE - 26 Levels!</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  overflow: hidden; 
+  font-family: 'Arial Black', sans-serif;
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+}
+
+#gameCanvas {
+  display: block;
+  background: #000;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Cutscene */
+#cutscene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#cutscene.hidden {
+  display: none;
+}
+
+#cutsceneCanvas {
+  border: 5px solid #fff;
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+}
+
+#cutsceneText {
+  margin-top: 30px;
+  max-width: 900px;
+  text-align: center;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.8;
+  text-shadow: 3px 3px 0 #000;
+  animation: textGlow 2s infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% { text-shadow: 3px 3px 0 #000, 0 0 10px #fff; }
+  50% { text-shadow: 3px 3px 0 #000, 0 0 30px #fff; }
+}
+
+.skip-btn {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  padding: 20px 40px;
+  font-size: 20px;
+  background: linear-gradient(135deg, #ff0000, #8b0000);
+  border: 3px solid #fff;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(255, 0, 0, 0.5);
+}
+
+.skip-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Main Menu */
+#mainMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#mainMenu.active {
+  display: flex;
+}
+
+.game-title {
+  font-size: 80px;
+  color: #ff0000;
+  text-shadow: 5px 5px 0 #000, -2px -2px 0 #8b0000;
+  margin-bottom: 20px;
+  animation: glow 2s infinite;
+}
+
+.game-subtitle {
+  font-size: 32px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 50px;
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 5px 5px 0 #000, 0 0 20px #ff0000; }
+  50% { text-shadow: 5px 5px 0 #000, 0 0 40px #ff0000; }
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.menu-btn {
+  padding: 20px 60px;
+  font-size: 28px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ff0000 0%, #8b0000 100%);
+  border: 4px solid #fff;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.menu-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(255, 0, 0, 0.5);
+}
+
+.menu-btn.danger {
+  background: linear-gradient(135deg, #666 0%, #333 100%);
+}
+
+/* Level Select Map */
+#levelMap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  display: none;
+  overflow-y: auto;
+  z-index: 2000;
+  padding: 100px 50px;
+}
+
+#levelMap.active {
+  display: block;
+}
+
+.map-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 25px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.level-card {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+  border: 5px solid #fff;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.level-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 40px rgba(255, 255, 255, 0.3);
+}
+
+.level-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
+.level-card.completed::after {
+  content: '✓';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #00ff00;
+  color: #000;
+  padding: 5px 15px;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 50%;
+}
+
+.level-number {
+  font-size: 36px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.level-name {
+  font-size: 18px;
+  color: #fff;
+  margin-top: 10px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.level-rank {
+  font-size: 28px;
+  margin-top: 5px;
+}
+
+.boss-card {
+  grid-column: span 5;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #8b0000 0%, #ff0000 100%);
+  animation: bossPulse 2s infinite;
+}
+
+@keyframes bossPulse {
+  0%, 100% { box-shadow: 0 0 20px #ff0000; }
+  50% { box-shadow: 0 0 40px #ff0000; }
+}
+
+.back-btn {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  padding: 15px 30px;
+  font-size: 20px;
+  background: #fff;
+  border: 3px solid #000;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  z-index: 2001;
+}
+
+/* Settings */
+#settingsMenu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border: 5px solid #fff;
+  padding: 40px;
+  border-radius: 15px;
+  display: none;
+  z-index: 2500;
+}
+
+#settingsMenu.active {
+  display: block;
+}
+
+.settings-title {
+  font-size: 36px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.setting-item {
+  margin: 20px 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.setting-item input[type="range"] {
+  width: 100%;
+}
+
+/* Level Complete */
+#levelComplete {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 1500;
+}
+
+#levelComplete.active {
+  display: flex;
+}
+
+.complete-title {
+  font-size: 72px;
+  color: #00ff00;
+  font-weight: bold;
+  text-shadow: 5px 5px 0 #000;
+  margin-bottom: 30px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.complete-stats {
+  background: rgba(0, 0, 0, 0.8);
+  border: 4px solid #fff;
+  padding: 30px 50px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-line {
+  color: #fff;
+  font-size: 24px;
+  margin: 10px 0;
+}
+
+.rank-display {
+  font-size: 120px;
+  margin: 20px 0;
+}
+
+.continue-btn {
+  padding: 20px 60px;
+  font-size: 28px;
+  background: #00ff00;
+  border: 4px solid #fff;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<!-- Cutscene -->
+<div id="cutscene">
+  <canvas id="cutsceneCanvas" width="1000" height="700"></canvas>
+  <div id="cutsceneText"></div>
+  <button class="skip-btn" onclick="skipCutscene()">SKIP ►</button>
+</div>
+
+<!-- Main Menu -->
+<div id="mainMenu">
+  <div class="game-title">RESCUE MISSION</div>
+  <div class="game-subtitle">🔥 ULTIMATE EDITION - 26 LEVELS! 🔥</div>
+  <div class="menu-buttons">
+    <button class="menu-btn" onclick="showLevelMap()">START GAME</button>
+    <button class="menu-btn" onclick="showSettings()">SETTINGS</button>
+    <button class="menu-btn danger" onclick="removeSave()">REMOVE SAVE</button>
+  </div>
+</div>
+
+<!-- Level Map -->
+<div id="levelMap">
+  <button class="back-btn" onclick="backToMenu()">← BACK</button>
+  <div class="map-container" id="levelMapContainer">
+    <!-- Levels will be generated here -->
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="settingsMenu">
+  <div class="settings-title">SETTINGS</div>
+  <div class="setting-item">
+    <label>Music Volume</label>
+    <input type="range" min="0" max="100" value="50" id="musicVolume">
+  </div>
+  <div class="setting-item">
+    <label>Sound Effects Volume</label>
+    <input type="range" min="0" max="100" value="70" id="sfxVolume">
+  </div>
+  <button class="menu-btn" onclick="closeSettings()" style="margin-top: 20px; width: 100%;">CLOSE</button>
+</div>
+
+<!-- Level Complete -->
+<div id="levelComplete">
+  <div class="complete-title">LEVEL COMPLETE!</div>
+  <div class="complete-stats">
+    <div class="stat-line">Score: <span id="finalScore">0</span></div>
+    <div class="stat-line">Enemies Defeated: <span id="enemiesDefeated">0</span></div>
+    <div class="stat-line">Time: <span id="completionTime">0:00</span></div>
+    <div class="stat-line">Secrets Found: <span id="secretsFound">0</span>/1</div>
+  </div>
+  <div class="rank-display" id="rankDisplay">S</div>
+  <button class="continue-btn" onclick="returnToMap()">CONTINUE</button>
+</div>
+
+<script>
+// ============================================================================
+// GAME CONFIGURATION
+// ============================================================================
+const CONFIG = {
+  CANVAS_WIDTH: window.innerWidth,
+  CANVAS_HEIGHT: window.innerHeight,
+  LEVEL_WIDTH: 6000, // HUGE levels!
+  PLAYER_SPEED: 5,
+  PLAYER_RUN_SPEED: 8,
+  JUMP_FORCE: 18,
+  GRAVITY: 1.0,
+  GROUND_Y: window.innerHeight - 170,
+  ATTACK_RANGE: 70,
+  KICK_RANGE: 90,
+  TOTAL_LEVELS: 25 // 25 levels + boss = 26 total
+};
+
+// WEAPON TYPES - 6 WEAPONS WITH REALISTIC MODELS
+const WEAPONS = {
+  PISTOL: { 
+    name: 'Glock 17', damage: 22, fireRate: 14, ammo: 18, maxAmmo: 18,
+    icon: 'Glock 17', color: '#666', 
+    bulletSpeed: 20, bulletSize: 5, bulletColor: '#ffd966',
+    bulletTrail: true, recoil: 1.2
+  },
+  SHOTGUN: { 
+    name: 'Remington 870', damage: 70, fireRate: 40, ammo: 8, maxAmmo: 8,
+    spread: 6, icon: 'Remington 870', color: '#8b4513',
+    bulletSpeed: 14, bulletSize: 7, bulletColor: '#ffb366',
+    bulletTrail: false, recoil: 3.5
+  },
+  RIFLE: { 
+    name: 'M4A1', damage: 38, fireRate: 10, ammo: 30, maxAmmo: 30,
+    icon: 'M4A1', color: '#2f4f4f',
+    bulletSpeed: 26, bulletSize: 5, bulletColor: '#c6ffb3',
+    bulletTrail: true, recoil: 2.2
+  },
+  SMG: { 
+    name: 'MP5', damage: 16, fireRate: 6, ammo: 60, maxAmmo: 60,
+    icon: 'MP5', color: '#4a4a5e',
+    bulletSpeed: 18, bulletSize: 4, bulletColor: '#b3f5ff',
+    bulletTrail: true, recoil: 1.6
+  },
+  SNIPER: { 
+    name: 'AWP', damage: 140, fireRate: 90, ammo: 5, maxAmmo: 5,
+    icon: 'AWP', color: '#000',
+    bulletSpeed: 40, bulletSize: 10, bulletColor: '#ff6666',
+    bulletTrail: true, bulletGlow: true, recoil: 6.0
+  },
+  MINIGUN: { 
+    name: 'M134 Minigun', damage: 10, fireRate: 3, ammo: 400, maxAmmo: 400,
+    icon: 'M134', color: '#ff4500',
+    bulletSpeed: 22, bulletSize: 5, bulletColor: '#ff6600',
+    bulletTrail: true, recoil: 4.0
+  }
+};
+
+// GRENADE TYPES - 4 GRENADES!
+const GRENADES = {
+  FRAG: { name: 'Frag', damage: 80, radius: 150, color: '#4a4a4a', icon: '💣' },
+  FIRE: { name: 'Fire', damage: 60, radius: 200, color: '#ff4500', burn: true, icon: '🔥' },
+  SMOKE: { name: 'Smoke', damage: 0, radius: 250, color: '#808080', blind: true, icon: '💨' },
+  FLASH: { name: 'Flash', damage: 0, radius: 300, color: '#ffff00', stun: true, icon: '⚡' }
+};
+
+// ENEMY TYPES - 6 TYPES INCLUDING BOSS!
+const ENEMY_TYPES = {
+  THUG: { health: 60, speed: 2, damage: 10, color: '#ff0000', hasGun: false, armor: 0, score: 100 },
+  GUNNER: { health: 80, speed: 1.5, damage: 15, color: '#8b0000', hasGun: true, weapon: 'PISTOL', armor: 0, score: 150 },
+  SOLDIER: { health: 120, speed: 1.8, damage: 20, color: '#2f4f2f', hasGun: true, weapon: 'RIFLE', armor: 50, score: 200 },
+  HEAVY: { health: 200, speed: 1, damage: 25, color: '#4a4a5e', hasGun: true, weapon: 'SHOTGUN', armor: 100, score: 300 },
+  TANK: { health: 400, speed: 0.8, damage: 40, color: '#1a1a2e', hasGun: true, weapon: 'MINIGUN', armor: 200, score: 500 },
+  BOSS: { health: 1000, speed: 2.5, damage: 50, color: '#8b0000', hasGun: true, weapon: 'SNIPER', armor: 300, score: 2000 }
+};
+
+// ============================================================================
+// GAME STATE
+// ============================================================================
+const game = {
+  canvas: null,
+  ctx: null,
+  currentLevel: 0,
+  camera: { x: 0, y: 0 },
+  player: {
+    x: 100,
+    y: CONFIG.GROUND_Y,
+    width: 60,
+    height: 100,
+    velocityX: 0,
+    velocityY: 0,
+    health: 10,
+    maxHealth: 10,
+    score: 0,
+    facingRight: true,
+    state: 'idle',
+    animFrame: 0,
+    animTimer: 0,
+    attackCooldown: 0,
+    kickCooldown: 0,
+    shootCooldown: 0,
+    grenadeCooldown: 0,
+    secretCooldown: 0,
+    combo: 0,
+    onGround: true,
+    currentWeapon: null,
+    weaponSlots: [null, null, null, null], // 4 weapon slots
+    currentSlot: 0,
+    ammo: 0,
+    grenades: { FRAG: 3, FIRE: 2, SMOKE: 2, FLASH: 2 },
+    currentGrenade: 'FRAG',
+    secretsFound: 0,
+    jumpChargeTime: 0,
+    maxJumpCharge: 30,
+    aura: false
+  },
+  bullets: [],
+  enemyBullets: [],
+  grenadeObjects: [],
+  bloodSplatters: [],
+  platforms: [],
+  weapons: [],
+  grenadePickups: [],
+  enemies: [],
+  hearts: [],
+  decorations: [],
+  secretArea: null,
+  inSecret: false,
+  secretMiniLevel: null,
+  secretCoins: [],
+  secretTimer: 0,
+  secretKey: null,
+  hasSecretKey: false,
+  door: null,
+  keys: {},
+  time: 0,
+  levelStartTime: 0,
+  enemiesDefeated: 0,
+  saveData: {
+    levelsCompleted: [],
+    levelRanks: {},
+    levelScores: {}
+  },
+  audioContext: null,
+  menuMusicPlaying: false,
+  menuMusicTimeout: null,
+  bossMusicOsc: [],
+  bossMusicInterval: null,
+  paused: false,
+  gameOver: false,
+  bossIntro: false
+};
+
+// ============================================================================
+// LEVEL NAMES - 26 LEVELS!
+// ============================================================================
+const LEVEL_NAMES = [
+  '', 'Street Patrol', 'Alley Ambush', 'Warehouse Raid', 'Market Search', 'Bridge Escape',
+  'Industrial Shift', 'Dockyard Run', 'Subway Strike', 'Mall Sweep', 'Office Siege',
+  'Construction Clash', 'Airfield Assault', 'Power Plant Raid', 'Prison Break', 'Hospital Rush',
+  'Garage Pursuit', 'Garden District', 'Sports Block', 'Transit Heist', 'Fire Escape',
+  'Tower Raid', 'Harbor Lockdown', 'Tunnel Chase', 'Night Run', 'City Showdown',
+  'Final Stand'
+];
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+function init() {
+  game.canvas = document.getElementById('gameCanvas');
+  game.ctx = game.canvas.getContext('2d');
+  
+  // Set canvas to fullscreen
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  
+  // Audio
+  try {
+    game.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    startMusic();
+  } catch (e) {
+    console.log('Web Audio API not supported');
+  }
+  
+  // Generate level map
+  generateLevelMap();
+  
+  // Event listeners
+  game.keys = {};
+  setupEventListeners();
+  
+  // Start game loop
+  gameLoop();
+  
+  // Start cutscene
+  setTimeout(() => {
+    playCutscene();
+  }, 500);
+  
+  console.log('🎮 RESCUE MISSION ULTIMATE - 26 LEVELS - FULLSCREEN - Initialized!');
+}
+
+function resizeCanvas() {
+  game.canvas.width = window.innerWidth;
+  game.canvas.height = window.innerHeight;
+  CONFIG.CANVAS_WIDTH = window.innerWidth;
+  CONFIG.CANVAS_HEIGHT = window.innerHeight;
+  CONFIG.GROUND_Y = window.innerHeight - 170;
+}
+
+function setupEventListeners() {
+  // Game keys that should not trigger browser defaults (scroll, etc.)
+  const GAME_KEYS = new Set([
+    'ArrowLeft','ArrowRight','ArrowUp','ArrowDown',
+    'z','Z','x','X','a','A','s','S','g','G','e','E','q','Q',
+    ' ','Escape','Enter','1','2','3','4'
+  ]);
+
+  document.addEventListener('keydown', (e) => {
+    // Prevent browser defaults (scrolling on arrows, etc.) that can steal focus
+    if (GAME_KEYS.has(e.key)) e.preventDefault();
+
+    // Only process new presses (ignore browser key-repeat events)
+    // For movement keys we still update the held state below; one-shot
+    // actions are gated by e.repeat so they only fire once per press.
+    const alreadyDown = game.keys[e.key];
+    game.keys[e.key] = true;
+    game.keys[e.key.toLowerCase()] = true;
+
+    if (!alreadyDown) {
+      // ── One-shot actions (fire only on the initial press) ──────────────
+
+      // Switch grenades with 1-4 keys
+      if (!e.shiftKey) {
+        if (e.key === '1') game.player.currentGrenade = 'FRAG';
+        if (e.key === '2') game.player.currentGrenade = 'FIRE';
+        if (e.key === '3') game.player.currentGrenade = 'SMOKE';
+        if (e.key === '4') game.player.currentGrenade = 'FLASH';
+      }
+
+      // Switch weapon slots with Q key (cycle through slots)
+      if (e.key === 'q' || e.key === 'Q') {
+        switchWeaponSlot();
+      }
+
+      // Direct slot selection with SHIFT + number
+      if (e.shiftKey) {
+        if (e.key === '1') selectWeaponSlot(0);
+        if (e.key === '2') selectWeaponSlot(1);
+        if (e.key === '3') selectWeaponSlot(2);
+        if (e.key === '4') selectWeaponSlot(3);
+      }
+
+      // If game over - ENTER returns to map
+      if (game.gameOver && e.key === 'Enter') {
+        game.gameOver = false;
+        returnToMap();
+        return;
+      }
+
+      // Pause toggle (only when not game over)
+      if (!game.gameOver && e.key === 'Escape') {
+        togglePause();
+      }
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    game.keys[e.key] = false;
+    game.keys[e.key.toLowerCase()] = false;
+  });
+
+  // ── Unstick all keys whenever the window loses focus ───────────────────
+  // Without this, keyup events are missed and keys appear to "stay pressed"
+  // (which feels like toggling behaviour).
+  window.addEventListener('blur', () => {
+    game.keys = {};
+  });
+}
+
+function switchWeaponSlot() {
+  // Find next slot with a weapon
+  let nextSlot = (game.player.currentSlot + 1) % 4;
+  let attempts = 0;
+  
+  while (attempts < 4) {
+    if (game.player.weaponSlots[nextSlot] !== null) {
+      selectWeaponSlot(nextSlot);
+      return;
+    }
+    nextSlot = (nextSlot + 1) % 4;
+    attempts++;
+  }
+  
+  // No weapons found
+  playSound(200, 0.1);
+}
+
+function selectWeaponSlot(slotIndex) {
+  if (game.player.weaponSlots[slotIndex] !== null) {
+    game.player.currentSlot = slotIndex;
+    const weaponData = game.player.weaponSlots[slotIndex];
+    game.player.currentWeapon = weaponData.type;
+    game.player.ammo = weaponData.ammo;
+    playSound(600, 0.2);
+  } else {
+    playSound(200, 0.1);
+  }
+}
+
+function generateLevelMap() {
+  const container = document.getElementById('levelMapContainer');
+  container.innerHTML = '';
+  
+  // Tutorial
+  container.innerHTML += `
+    <div class="level-card" onclick="startLevel(0)">
+      <div class="level-number">TUTORIAL</div>
+      <div class="level-name">Learn the Basics</div>
+      <div class="level-rank" id="rank0"></div>
+    </div>
+  `;
+  
+  // 25 Levels
+  for (let i = 1; i <= CONFIG.TOTAL_LEVELS; i++) {
+    container.innerHTML += `
+      <div class="level-card" id="level${i}Card" onclick="startLevel(${i})">
+        <div class="level-number">LEVEL ${i}</div>
+        <div class="level-name">${LEVEL_NAMES[i]}</div>
+        <div class="level-rank" id="rank${i}"></div>
+      </div>
+    `;
+  }
+  
+  // Boss
+  container.innerHTML += `
+    <div class="level-card boss-card" id="bossCard" onclick="startLevel(26)">
+      <div class="level-number">BOSS</div>
+      <div class="level-name">FINAL BOSS</div>
+      <div class="level-rank" id="rankBoss"></div>
+    </div>
+  `;
+}
+
+// ============================================================================
+// CUTSCENE WITH ENHANCED DRAWINGS
+// ============================================================================
+const cutsceneScript = [
+  { 
+    text: "A peaceful evening at home...", 
+    duration: 2500,
+    draw: (ctx) => {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(0, 0, 1000, 700);
+      ctx.fillStyle = '#d2691e';
+      ctx.fillRect(50, 50, 900, 600);
+      
+      ctx.fillStyle = '#654321';
+      ctx.fillRect(400, 450, 200, 20);
+      
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(350, 400, 40, 60);
+      ctx.fillStyle = '#ffdbac';
+      ctx.beginPath();
+      ctx.arc(370, 380, 20, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff69b4';
+      ctx.fillRect(610, 400, 40, 60);
+      ctx.fillStyle = '#ffdbac';
+      ctx.beginPath();
+      ctx.arc(630, 380, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(615, 365, 30, 20);
+    }
+  },
+  { 
+    text: "Suddenly, masked men burst through the door!", 
+    duration: 2500,
+    draw: (ctx) => {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(0, 0, 1000, 700);
+      ctx.fillStyle = '#d2691e';
+      ctx.fillRect(50, 50, 900, 600);
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(750, 250, 120, 250);
+      
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(700 + i * 60, 300, 50, 100);
+        ctx.beginPath();
+        ctx.arc(725 + i * 60, 285, 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(717 + i * 60, 280, 6, 6);
+        ctx.fillRect(728 + i * 60, 280, 6, 6);
+      }
+    }
+  },
+  { 
+    text: "They grab SARAH and disappear into the night!", 
+    duration: 2500,
+    draw: (ctx) => {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 1000, 700);
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(450, 300, 50, 100);
+      ctx.beginPath();
+      ctx.arc(475, 285, 25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff69b4';
+      ctx.fillRect(510, 320, 35, 60);
+      ctx.fillStyle = '#ffdbac';
+      ctx.beginPath();
+      ctx.arc(527, 305, 18, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+  { 
+    text: 'JACK finds a note: "You have 24 hours to save her!"', 
+    duration: 2500,
+    draw: (ctx) => {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(0, 0, 1000, 700);
+      ctx.fillStyle = '#d2691e';
+      ctx.fillRect(50, 50, 900, 600);
+      
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(300, 250, 400, 300);
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 32px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('You have 24 hours', 500, 350);
+      ctx.fillText('to save SARAH!', 500, 400);
+      ctx.fillText('- The Syndicate', 500, 480);
+    }
+  },
+  { 
+    text: 'JACK: "I\'M COMING FOR YOU!!!"', 
+    duration: 2500,
+    draw: (ctx) => {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 1000, 700);
+      
+      ctx.fillStyle = '#ffdbac';
+      ctx.beginPath();
+      ctx.arc(500, 350, 180, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(420, 320, 50, 25);
+      ctx.fillRect(530, 320, 50, 25);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(438, 327, 12, 12);
+      ctx.fillRect(548, 327, 12, 12);
+      
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(500, 410, 60, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+    }
+  },
+  { 
+    text: "Nothing will stop him from saving SARAH!", 
+    duration: 3000,
+    draw: (ctx) => {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 1000, 700);
+      
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(425, 300, 150, 200);
+      ctx.fillStyle = '#ffdbac';
+      ctx.beginPath();
+      ctx.arc(500, 265, 50, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('RESCUE MISSION', 500, 580);
+      ctx.font = 'bold 32px Arial';
+      ctx.fillText('ULTIMATE EDITION', 500, 630);
+    }
+  }
+];
+
+let cutsceneIndex = 0;
+let cutsceneTimeout = null;
+
+function playCutscene() {
+  const canvas = document.getElementById('cutsceneCanvas');
+  if (!canvas) {
+    endCutscene();
+    return;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  
+  if (cutsceneIndex >= cutsceneScript.length) {
+    endCutscene();
+    return;
+  }
+  
+  const scene = cutsceneScript[cutsceneIndex];
+  
+  ctx.clearRect(0, 0, 1000, 700);
+  
+  if (scene.draw) {
+    try {
+      scene.draw(ctx);
+    } catch (e) {
+      console.error('Error drawing cutscene:', e);
+    }
+  }
+  
+  const textEl = document.getElementById('cutsceneText');
+  if (textEl) {
+    textEl.textContent = scene.text;
+  }
+  
+  cutsceneIndex++;
+  cutsceneTimeout = setTimeout(playCutscene, scene.duration);
+}
+
+function skipCutscene() {
+  if (cutsceneTimeout) {
+    clearTimeout(cutsceneTimeout);
+    cutsceneTimeout = null;
+  }
+  cutsceneIndex = cutsceneScript.length;
+  endCutscene();
+}
+
+function endCutscene() {
+  if (cutsceneTimeout) {
+    clearTimeout(cutsceneTimeout);
+    cutsceneTimeout = null;
+  }
+  document.getElementById('cutscene').classList.add('hidden');
+  document.getElementById('mainMenu').classList.add('active');
+  loadSaveData();
+}
+
+// ============================================================================
+// SAVE SYSTEM
+// ============================================================================
+function loadSaveData() {
+  const saved = localStorage.getItem('rescueMissionUltimateSave');
+  if (saved) {
+    game.saveData = JSON.parse(saved);
+    updateLevelMap();
+  }
+}
+
+function saveGame() {
+  localStorage.setItem('rescueMissionUltimateSave', JSON.stringify(game.saveData));
+}
+
+function removeSave() {
+  if (confirm('Delete save data?')) {
+    localStorage.removeItem('rescueMissionUltimateSave');
+    game.saveData = { levelsCompleted: [], levelRanks: {}, levelScores: {} };
+    updateLevelMap();
+    alert('Save deleted!');
+  }
+}
+
+function updateLevelMap() {
+  if (game.saveData.levelsCompleted.includes(0)) {
+    document.getElementById('rank0').textContent = game.saveData.levelRanks[0] || '';
+  }
+  
+  for (let i = 1; i <= CONFIG.TOTAL_LEVELS; i++) {
+    const card = document.getElementById(`level${i}Card`);
+    const rankEl = document.getElementById(`rank${i}`);
+    
+    if (game.saveData.levelsCompleted.includes(i - 1)) {
+      card.classList.remove('locked');
+    }
+    
+    if (game.saveData.levelsCompleted.includes(i)) {
+      card.classList.add('completed');
+      rankEl.textContent = game.saveData.levelRanks[i] || '';
+    }
+  }
+  
+  if (game.saveData.levelsCompleted.includes(CONFIG.TOTAL_LEVELS)) {
+    document.getElementById('bossCard').classList.remove('locked');
+  }
+  
+  if (game.saveData.levelsCompleted.includes(26)) {
+    document.getElementById('bossCard').classList.add('completed');
+    document.getElementById('rankBoss').textContent = game.saveData.levelRanks[26] || '';
+  }
+}
+
+// ============================================================================
+// MENU FUNCTIONS
+// ============================================================================
+function showLevelMap() {
+  document.getElementById('mainMenu').classList.remove('active');
+  document.getElementById('levelMap').classList.add('active');
+}
+
+function backToMenu() {
+  document.getElementById('levelMap').classList.remove('active');
+  document.getElementById('mainMenu').classList.add('active');
+}
+
+function showSettings() {
+  document.getElementById('settingsMenu').classList.add('active');
+}
+
+function closeSettings() {
+  document.getElementById('settingsMenu').classList.remove('active');
+}
+
+function returnToMap() {
+  document.getElementById('levelComplete').classList.remove('active');
+  game.canvas.style.display = 'none';
+  updateLevelMap();
+  showLevelMap();
+}
+
+// ============================================================================
+// MUSIC SYSTEM
+// ============================================================================
+function startMusic() {
+  if (!game.audioContext) return;
+  
+  const notes = [
+    { freq: 220, duration: 0.5 },
+    { freq: 247, duration: 0.5 },
+    { freq: 262, duration: 0.5 },
+    { freq: 294, duration: 0.5 },
+    { freq: 330, duration: 1 },
+    { freq: 294, duration: 0.5 },
+    { freq: 262, duration: 0.5 },
+    { freq: 220, duration: 1 }
+  ];
+  
+  let noteIndex = 0;
+  game.menuMusicPlaying = true;
+  
+  function playNextNote() {
+    if (!game.menuMusicPlaying) return;
+    const note = notes[noteIndex % notes.length];
+    const oscillator = game.audioContext.createOscillator();
+    const gainNode = game.audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(game.audioContext.destination);
+    
+    oscillator.frequency.value = note.freq;
+    oscillator.type = 'square';
+    
+    const volume = (document.getElementById('musicVolume')?.value || 50) / 100;
+    gainNode.gain.setValueAtTime(volume * 0.05, game.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, game.audioContext.currentTime + note.duration);
+    
+    oscillator.start(game.audioContext.currentTime);
+    oscillator.stop(game.audioContext.currentTime + note.duration);
+    
+    noteIndex++;
+    game.menuMusicTimeout = setTimeout(playNextNote, note.duration * 1000);
+  }
+  
+  playNextNote();
+}
+
+function playSound(frequency, duration) {
+  if (!game.audioContext) return;
+  
+  const oscillator = game.audioContext.createOscillator();
+  const gainNode = game.audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(game.audioContext.destination);
+  
+  oscillator.frequency.value = frequency;
+  oscillator.type = 'square';
+  
+  const volume = (document.getElementById('sfxVolume')?.value || 70) / 100;
+  gainNode.gain.setValueAtTime(volume * 0.1, game.audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, game.audioContext.currentTime + duration);
+  
+  oscillator.start(game.audioContext.currentTime);
+  oscillator.stop(game.audioContext.currentTime + duration);
+}
+
+function stopMenuMusic() {
+  if (game.menuMusicTimeout) {
+    clearTimeout(game.menuMusicTimeout);
+    game.menuMusicTimeout = null;
+  }
+  game.menuMusicPlaying = false;
+}
+
+// ============================================================================
+// LEVEL START
+// ============================================================================
+function startLevel(levelNum) {
+  const card = document.getElementById(levelNum === 26 ? 'bossCard' : levelNum === 0 ? null : `level${levelNum}Card`);
+  if (card && card.classList.contains('locked')) {
+    playSound(200, 0.2);
+    return;
+  }
+  
+  game.currentLevel = levelNum;
+  document.getElementById('levelMap').classList.remove('active');
+  game.canvas.style.display = 'block';
+  
+  // Reset player
+  game.player.x = 100;
+  game.player.y = CONFIG.GROUND_Y;
+  game.player.velocityX = 0;
+  game.player.velocityY = 0;
+  game.player.health = 10;
+  game.player.score = 0;
+  game.player.facingRight = true;
+  game.player.state = 'idle';
+  game.player.animFrame = 0;
+  game.player.onGround = true;
+  game.player.currentWeapon = null;
+  game.player.weaponSlots = [null, null, null, null];
+  game.player.currentSlot = 0;
+  game.player.ammo = 0;
+  game.player.secretsFound = 0;
+  game.player.grenades = { FRAG: 3, FIRE: 2, SMOKE: 2, FLASH: 2 };
+  game.player.currentGrenade = 'FRAG';
+  game.player.jumpChargeTime = 0;
+  game.player.aura = false;
+  game.enemiesDefeated = 0;
+  game.levelStartTime = Date.now();
+  game.camera.x = 0;
+  game.inSecret = false;
+  game.hasSecretKey = false;
+  
+  // Stop menu music on game start, especially boss fight
+  stopMenuMusic();
+  
+  // Create level
+  createLevel(levelNum);
+  
+  playSound(400, 0.3);
+}
+
+// ============================================================================
+// LEVEL CREATION - 26 LEVELS!
+// ============================================================================
+function createLevel(levelNum) {
+  game.enemies = [];
+  game.bullets = [];
+  game.enemyBullets = [];
+  game.grenadeObjects = [];
+  game.bloodSplatters = [];
+  game.platforms = [];
+  game.weapons = [];
+  game.grenadePickups = [];
+  game.hearts = [];
+  game.decorations = [];
+  
+  // Create door
+  game.door = {
+    x: CONFIG.LEVEL_WIDTH - 300,
+    y: CONFIG.GROUND_Y - 200,
+    width: 200,
+    height: 200,
+    glowing: false
+  };
+  
+  // Create secret area placeholder
+  game.secretArea = {
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 150,
+    found: false,
+    locked: true // Needs key to open!
+  };
+  
+  game.hasSecretKey = false;
+  
+  // Generate level based on number
+  if (levelNum === 0) {
+    createTutorialLevel();
+  } else if (levelNum <= 25) {
+    createDynamicLevel(levelNum);
+  } else if (levelNum === 26) {
+    createBossLevel();
+  }
+
+  // Place the secret room entrance only on floor or on a valid platform
+  placeSecretArea();
+}
+
+function placeSecretArea() {
+  const usePlatform = game.platforms.length > 0 && Math.random() < 0.7;
+  if (usePlatform) {
+    const platform = game.platforms[Math.floor(Math.random() * game.platforms.length)];
+    const platformX = Math.max(platform.x, Math.min(platform.x + platform.width - game.secretArea.width, platform.x + platform.width / 2 - game.secretArea.width / 2));
+    game.secretArea.x = platformX;
+    game.secretArea.y = platform.y - game.secretArea.height;
+  } else {
+    game.secretArea.x = Math.floor(Math.random() * (CONFIG.LEVEL_WIDTH - 1000)) + 500;
+    game.secretArea.y = CONFIG.GROUND_Y - game.secretArea.height;
+  }
+  game.secretArea.y = Math.min(game.secretArea.y, CONFIG.GROUND_Y - game.secretArea.height);
+}
+
+function spawnSecretKey() {
+  // 100% GUARANTEED KEY SPAWN!
+  // Always spawns on a platform
+  
+  if (game.platforms.length === 0) {
+    console.error('No platforms found! Creating emergency platform for key.');
+    // Emergency platform if somehow no platforms exist
+    game.platforms.push({ x: 1500, y: CONFIG.GROUND_Y - 200, width: 200, height: 20 });
+  }
+  
+  // Select random platform
+  const randomPlatform = game.platforms[Math.floor(Math.random() * game.platforms.length)];
+  
+  // Spawn key above platform center
+  game.secretKey = {
+    x: randomPlatform.x + randomPlatform.width / 2,
+    y: randomPlatform.y - 50,
+    collected: false,
+    floating: 0 // For animation
+  };
+  
+  console.log(`✅ SECRET KEY SPAWNED at platform (${randomPlatform.x}, ${randomPlatform.y})`);
+}
+
+function createTutorialLevel() {
+  // Simple tutorial
+  addBackground('city', 1);
+  
+  // Signs
+  game.decorations.push({ type: 'sign', x: 300, y: CONFIG.GROUND_Y - 150, text: 'MOVE ← →' });
+  game.decorations.push({ type: 'sign', x: 800, y: CONFIG.GROUND_Y - 150, text: 'JUMP Z' });
+  game.decorations.push({ type: 'sign', x: 1300, y: CONFIG.GROUND_Y - 150, text: 'PUNCH X' });
+  game.decorations.push({ type: 'sign', x: 1800, y: CONFIG.GROUND_Y - 150, text: 'KICK A' });
+  game.decorations.push({ type: 'sign', x: 2300, y: CONFIG.GROUND_Y - 150, text: 'SHOOT S' });
+  game.decorations.push({ type: 'sign', x: 2800, y: CONFIG.GROUND_Y - 150, text: 'GRENADE G' });
+  game.decorations.push({ type: 'sign', x: 3300, y: CONFIG.GROUND_Y - 150, text: 'RUN SHIFT' });
+  
+  // Platforms with weapons
+  game.platforms.push({ x: 1000, y: CONFIG.GROUND_Y - 150, width: 200, height: 20 });
+  game.platforms.push({ x: 1500, y: CONFIG.GROUND_Y - 250, width: 200, height: 20 });
+  game.platforms.push({ x: 2000, y: CONFIG.GROUND_Y - 150, width: 200, height: 20 });
+  game.platforms.push({ x: 2500, y: CONFIG.GROUND_Y - 200, width: 200, height: 20 });
+  game.platforms.push({ x: 3000, y: CONFIG.GROUND_Y - 300, width: 200, height: 20 });
+  
+  // Weapons
+  addWeapon('PISTOL', 1100, CONFIG.GROUND_Y - 200);
+  addWeapon('SHOTGUN', 1600, CONFIG.GROUND_Y - 300);
+  
+  // Grenade pickups
+  addGrenadePickup('FRAG', 2100, CONFIG.GROUND_Y - 200);
+  
+  // Enemies
+  spawnEnemy(1200, 'THUG');
+  spawnEnemy(2000, 'THUG');
+  spawnEnemy(2500, 'GUNNER');
+  
+  // Hearts
+  for (let i = 0; i < 5; i++) {
+    game.hearts.push({ x: 600 + i * 400, y: CONFIG.GROUND_Y - 100, collected: false });
+  }
+  
+  // SPAWN SECRET KEY - 100% GUARANTEED!
+  spawnSecretKey();
+}
+
+function createDynamicLevel(levelNum) {
+  // Different theme per level - matches LEVEL_NAMES
+  const themes = [
+    'street',      // 1 Street Patrol
+    'alley',       // 2 Alley Ambush
+    'warehouse',   // 3 Warehouse Raid
+    'market',      // 4 Market Search
+    'bridge',      // 5 Bridge Escape
+    'industrial',  // 6 Industrial Shift
+    'dockyard',    // 7 Dockyard Run
+    'subway',      // 8 Subway Strike
+    'mall',        // 9 Mall Sweep
+    'office',      // 10 Office Siege
+    'construction',// 11 Construction Clash
+    'airfield',    // 12 Airfield Assault
+    'powerplant',  // 13 Power Plant Raid
+    'prison',      // 14 Prison Break
+    'hospital',    // 15 Hospital Rush
+    'garage',      // 16 Garage Pursuit
+    'garden',      // 17 Garden District
+    'sportsblock', // 18 Sports Block
+    'transit',     // 19 Transit Heist
+    'fireescape',  // 20 Fire Escape
+    'tower',       // 21 Tower Raid
+    'harbor',      // 22 Harbor Lockdown
+    'tunnel',      // 23 Tunnel Chase
+    'nightrun',    // 24 Night Run
+    'citynight'    // 25 City Showdown
+  ];
+  const theme = themes[Math.min(levelNum - 1, themes.length - 1)];
+  
+  addBackground(theme, levelNum);
+  
+  // Platforms - more complex layouts
+  const platformCount = 8 + Math.floor(levelNum / 2);
+  for (let i = 0; i < platformCount; i++) {
+    const baseX = 400 + i * 350 + Math.random() * 150;
+    const width = 200 + Math.random() * 150;
+    const x = Math.min(baseX, CONFIG.LEVEL_WIDTH - width - 100);
+    const y = CONFIG.GROUND_Y - (100 + Math.random() * 300);
+    game.platforms.push({ x, y, width, height: 20 });
+    
+    // Weapons on platforms
+    if (Math.random() > 0.6) {
+      const weaponTypes = Object.keys(WEAPONS);
+      const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
+      addWeapon(weaponType, x + width / 2, y - 50);
+    }
+    
+    // Grenades on platforms
+    if (Math.random() > 0.8) {
+      const grenadeTypes = Object.keys(GRENADES);
+      const grenadeType = grenadeTypes[Math.floor(Math.random() * grenadeTypes.length)];
+      addGrenadePickup(grenadeType, x + width / 2, y - 50);
+    }
+  }
+  
+  // Decorations based on theme
+  addThemeDecorations(theme, levelNum);
+  
+  // Enemies - mix of types, more as levels progress
+  // Increase enemy density for more challenge
+  const enemyCount = 20 + levelNum * 3;
+  const enemyTypes = ['THUG', 'GUNNER', 'SOLDIER', 'HEAVY', 'TANK'];
+  
+  for (let i = 0; i < enemyCount; i++) {
+    const baseX = 600 + i * 150 + Math.random() * 100;
+    const x = Math.min(baseX, CONFIG.LEVEL_WIDTH - 200);
+    const typeIndex = Math.min(Math.floor(levelNum / 5), enemyTypes.length - 1);
+    const type = enemyTypes[Math.floor(Math.random() * (typeIndex + 1))];
+    spawnEnemy(x, type);
+  }
+  
+  // Hearts
+  for (let i = 0; i < 10; i++) {
+    game.hearts.push({ 
+      x: 500 + i * 500 + Math.random() * 200, 
+      y: CONFIG.GROUND_Y - 100 - Math.random() * 200, 
+      collected: false 
+    });
+  }
+  
+  // SPAWN SECRET KEY - 100% GUARANTEED!
+  spawnSecretKey();
+}
+
+function createBossLevel() {
+  addBackground('boss', 26);
+  
+  // Arena platforms
+  game.platforms.push({ x: 800, y: CONFIG.GROUND_Y - 150, width: 300, height: 20 });
+  game.platforms.push({ x: 1300, y: CONFIG.GROUND_Y - 250, width: 250, height: 20 });
+  game.platforms.push({ x: 1800, y: CONFIG.GROUND_Y - 150, width: 300, height: 20 });
+  game.platforms.push({ x: 2300, y: CONFIG.GROUND_Y - 300, width: 250, height: 20 });
+  game.platforms.push({ x: 2800, y: CONFIG.GROUND_Y - 150, width: 300, height: 20 });
+  
+  // All weapons available
+  addWeapon('SNIPER', 900, CONFIG.GROUND_Y - 200);
+  addWeapon('MINIGUN', 1400, CONFIG.GROUND_Y - 300);
+  addWeapon('SHOTGUN', 1900, CONFIG.GROUND_Y - 200);
+  
+  // All grenades
+  addGrenadePickup('FRAG', 2400, CONFIG.GROUND_Y - 350);
+  addGrenadePickup('FIRE', 2900, CONFIG.GROUND_Y - 200);
+  
+  // Boss
+  spawnEnemy(2500, 'BOSS');
+
+  // Spawn additional waves of enemies to make boss arena lively
+  const bossAdds = ['GUNNER','THUG','SOLDIER','HEAVY'];
+  for (let i = 0; i < 8; i++) {
+    const addType = bossAdds[Math.floor(Math.random() * bossAdds.length)];
+    const offset = (i - 4) * 180 + Math.random() * 80;
+    spawnEnemy(Math.max(400, Math.min(CONFIG.LEVEL_WIDTH - 400, 2500 + offset)), addType);
+  }
+  
+  // Extra hearts
+  for (let i = 0; i < 10; i++) {
+    game.hearts.push({ x: 1000 + i * 300, y: CONFIG.GROUND_Y - 100, collected: false });
+  }
+  
+  // SPAWN SECRET KEY - 100% GUARANTEED!
+  spawnSecretKey();
+}
+
+function addBackground(theme, variant) {
+  game.decorations.push({ type: 'background', theme: theme, variant: variant });
+}
+
+function addThemeDecorations(theme, levelNum) {
+  const decorCount = 20 + levelNum * 2;
+  
+  for (let i = 0; i < decorCount; i++) {
+    const x = 300 + i * 250;
+    const y = CONFIG.GROUND_Y - 80;
+    
+    let decorType = 'desk';
+    
+    if (theme === 'street' || theme === 'nightrun' || theme === 'citynight') decorType = Math.random() > 0.5 ? 'car' : (Math.random() > 0.5 ? 'trash' : 'streetlight');
+    else if (theme === 'alley') decorType = Math.random() > 0.5 ? 'trash' : (Math.random() > 0.5 ? 'barrel' : 'dumpster');
+    else if (theme === 'warehouse') decorType = Math.random() > 0.5 ? 'crate' : (Math.random() > 0.5 ? 'barrel' : 'container');
+    else if (theme === 'market') decorType = Math.random() > 0.5 ? 'stall' : (Math.random() > 0.5 ? 'crate' : 'sign');
+    else if (theme === 'bridge') decorType = Math.random() > 0.5 ? 'car' : (Math.random() > 0.5 ? 'barrel' : 'crate');
+    else if (theme === 'industrial') decorType = Math.random() > 0.5 ? 'machine' : (Math.random() > 0.5 ? 'pipe' : 'barrel');
+    else if (theme === 'dockyard') decorType = Math.random() > 0.5 ? 'container' : (Math.random() > 0.5 ? 'crane' : 'crate');
+    else if (theme === 'subway') decorType = Math.random() > 0.5 ? 'bench' : (Math.random() > 0.5 ? 'sign' : 'pillar');
+    else if (theme === 'mall') decorType = Math.random() > 0.5 ? 'bench' : (Math.random() > 0.5 ? 'sign' : 'desk');
+    else if (theme === 'office') decorType = Math.random() > 0.5 ? 'desk' : (Math.random() > 0.5 ? 'computer' : 'chair');
+    else if (theme === 'construction') decorType = Math.random() > 0.5 ? 'crate' : (Math.random() > 0.5 ? 'barrel' : 'pipe');
+    else if (theme === 'airfield') decorType = Math.random() > 0.5 ? 'crate' : (Math.random() > 0.5 ? 'barrel' : 'container');
+    else if (theme === 'powerplant') decorType = Math.random() > 0.5 ? 'machine' : (Math.random() > 0.5 ? 'pipe' : 'barrel');
+    else if (theme === 'prison') decorType = Math.random() > 0.5 ? 'crate' : (Math.random() > 0.5 ? 'bench' : 'sign');
+    else if (theme === 'hospital') decorType = Math.random() > 0.5 ? 'desk' : (Math.random() > 0.5 ? 'chair' : 'sign');
+    else if (theme === 'garage') decorType = Math.random() > 0.5 ? 'car' : (Math.random() > 0.5 ? 'barrel' : 'crate');
+    else if (theme === 'garden') decorType = Math.random() > 0.5 ? 'tree' : (Math.random() > 0.5 ? 'bench' : 'barrel');
+    else if (theme === 'sportsblock') decorType = Math.random() > 0.5 ? 'basketballHoop' : (Math.random() > 0.5 ? 'bench' : 'crate');
+    else if (theme === 'transit') decorType = Math.random() > 0.5 ? 'bench' : (Math.random() > 0.5 ? 'sign' : 'trash');
+    else if (theme === 'fireescape') decorType = Math.random() > 0.5 ? 'pipe' : (Math.random() > 0.5 ? 'barrel' : 'crate');
+    else if (theme === 'tower' || theme === 'harbor') decorType = Math.random() > 0.5 ? 'container' : (Math.random() > 0.5 ? 'crate' : 'barrel');
+    else if (theme === 'tunnel') decorType = Math.random() > 0.5 ? 'pipe' : (Math.random() > 0.5 ? 'crate' : 'machine');
+    
+    game.decorations.push({ type: decorType, x, y });
+  }
+}
+
+function addWeapon(type, x, y) {
+  game.weapons.push({ type, x, y, collected: false });
+}
+
+function addGrenadePickup(type, x, y) {
+  game.grenadePickups.push({ type, x, y, collected: false });
+}
+
+function spawnEnemy(x, type) {
+  const enemyData = ENEMY_TYPES[type];
+  
+  game.enemies.push({
+    x: x,
+    y: CONFIG.GROUND_Y,
+    width: type === 'TANK' ? 100 : type === 'BOSS' ? 120 : 60,
+    height: type === 'TANK' ? 120 : type === 'BOSS' ? 150 : 100,
+    health: enemyData.health,
+    maxHealth: enemyData.health,
+    armor: enemyData.armor,
+    facingRight: false,
+    state: 'idle',
+    animFrame: 0,
+    animTimer: 0,
+    attackCooldown: 0,
+    shootCooldown: 0,
+    stunned: false,
+    blinded: false,
+    dead: false,
+    type: type,
+    hasGun: enemyData.hasGun,
+    weapon: enemyData.weapon,
+    velocityX: 0,
+    velocityY: 0,
+    onGround: true,
+    color: enemyData.color
+  });
+
+  // If spawning boss, initialize boss-specific state on the last element
+  if (type === 'BOSS') {
+    const boss = game.enemies[game.enemies.length - 1];
+    boss.phase = 1;
+    boss.maxPhases = 4;
+    boss.phaseThresholds = [0.75, 0.5, 0.25];
+    boss.abilityCooldowns = { dash: 0, slam: 0, summon: 0, wave: 0, charge: 0 };
+    boss.phaseTimer = 0;
+    boss.enraged = false;
+    boss.aura = 0;
+    boss.chargeTimer = 0;
+    boss.chargeDirection = 0;
+  }
+}
+
+// ============================================================================
+// PLAYER UPDATE
+// ============================================================================
+function updatePlayer() {
+  if (game.player.attackCooldown > 0) game.player.attackCooldown--;
+  if (game.player.kickCooldown > 0) game.player.kickCooldown--;
+  if (game.player.shootCooldown > 0) game.player.shootCooldown--;
+  if (game.player.grenadeCooldown > 0) game.player.grenadeCooldown--;
+
+  game.player.animTimer++;
+  if (game.player.animTimer > 8) {
+    game.player.animTimer = 0;
+    game.player.animFrame = (game.player.animFrame + 1) % 4;
+  }
+
+  const isRunning = game.keys['shift'] || game.keys['Shift'];
+  const speed = isRunning ? CONFIG.PLAYER_RUN_SPEED : CONFIG.PLAYER_SPEED;
+  let moving = false;
+
+  if (game.keys['arrowleft'] || game.keys['ArrowLeft']) {
+    game.player.velocityX = -speed;
+    game.player.facingRight = false;
+    moving = true;
+  } else if (game.keys['arrowright'] || game.keys['ArrowRight']) {
+    game.player.velocityX = speed;
+    game.player.facingRight = true;
+    moving = true;
+  } else {
+    game.player.velocityX = 0;
+  }
+
+  // Jump - SUPER JUMP when held!
+  if ((game.keys['z'] || game.keys['Z']) && game.player.onGround) {
+    if (game.player.jumpChargeTime === 0) {
+      // Start charging
+      game.player.jumpChargeTime = 1;
+    } else if (game.player.jumpChargeTime < game.player.maxJumpCharge) {
+      // Continue charging
+      game.player.jumpChargeTime++;
+    }
+  } else if (game.player.jumpChargeTime > 0) {
+    // Release jump!
+    const chargePercent = game.player.jumpChargeTime / game.player.maxJumpCharge;
+    const jumpPower = CONFIG.JUMP_FORCE + (chargePercent * CONFIG.JUMP_FORCE); // Up to 2x power
+    game.player.velocityY = -jumpPower;
+    game.player.onGround = false;
+    game.player.state = 'jump';
+    game.player.jumpChargeTime = 0;
+    playSound(300 + chargePercent * 200, 0.1 + chargePercent * 0.1);
+  }
+  
+  // Attack
+  if ((game.keys['x'] || game.keys['X']) && game.player.attackCooldown === 0 && game.player.onGround) {
+    performAttack();
+  }
+  
+  // Kick
+  if ((game.keys['a'] || game.keys['A']) && game.player.kickCooldown === 0 && game.player.onGround) {
+    performKick();
+  }
+  
+  // Shoot
+  if ((game.keys['s'] || game.keys['S']) && game.player.currentWeapon && game.player.shootCooldown === 0 && game.player.ammo > 0) {
+    performShoot();
+  }
+  
+  // Grenade
+  if ((game.keys['g'] || game.keys['G']) && game.player.grenadeCooldown === 0 && game.player.grenades[game.player.currentGrenade] > 0) {
+    throwGrenade();
+  }
+  
+  // Check secret - CHANGED TO E KEY!
+  // Use a cooldown so holding E only triggers once per press
+  if (game.player.secretCooldown > 0) game.player.secretCooldown--;
+  if ((game.keys['e'] || game.keys['E']) && !game.inSecret && game.player.secretCooldown === 0) {
+    game.player.secretCooldown = 30; // half-second lock after each press
+    checkSecretEntry();
+  }
+  
+  // Check key collection
+  checkSecretKeyCollection();
+  
+  // Physics
+  const previousY = game.player.y;
+  game.player.x += game.player.velocityX;
+  game.player.velocityY += CONFIG.GRAVITY;
+  game.player.y += game.player.velocityY;
+  
+  // Ground collision
+  game.player.onGround = false;
+  if (game.player.y >= CONFIG.GROUND_Y) {
+    game.player.y = CONFIG.GROUND_Y;
+    game.player.velocityY = 0;
+    game.player.onGround = true;
+    if (game.player.state === 'jump') game.player.state = 'idle';
+  }
+  
+  // Platform collision
+  game.platforms.forEach(platform => {
+    const playerLeft = game.player.x - game.player.width / 2;
+    const playerRight = game.player.x + game.player.width / 2;
+    const playerBottom = game.player.y;
+    const previousBottom = previousY;
+    const platformTop = platform.y;
+    
+    const horizontallyOverlapping = playerRight > platform.x && playerLeft < platform.x + platform.width;
+    const landingTolerance = 8;
+    const isFallingOntoPlatform = previousBottom <= platformTop + landingTolerance && playerBottom >= platformTop;
+    
+    if (horizontallyOverlapping && isFallingOntoPlatform && game.player.velocityY >= 0) {
+      game.player.y = platformTop;
+      game.player.velocityY = 0;
+      game.player.onGround = true;
+      if (game.player.state === 'jump') game.player.state = 'idle';
+    }
+  });
+  
+  // Bounds
+  game.player.x = Math.max(0, Math.min(CONFIG.LEVEL_WIDTH - game.player.width, game.player.x));
+  
+  // State
+  if (game.player.state !== 'attack' && game.player.state !== 'kick' && game.player.state !== 'shoot' && game.player.state !== 'jump') {
+    if (moving) {
+      game.player.state = isRunning ? 'run' : 'walk';
+    } else {
+      game.player.state = 'idle';
+    }
+  }
+  
+  // Camera
+  game.camera.x = Math.max(0, Math.min(CONFIG.LEVEL_WIDTH - CONFIG.CANVAS_WIDTH, game.player.x - CONFIG.CANVAS_WIDTH / 2));
+  
+  // Collections
+  checkWeaponCollection();
+  checkGrenadeCollection();
+  checkHeartCollection();
+  checkDoorEntry();
+}
+
+function performAttack() {
+  game.player.state = 'attack';
+  game.player.attackCooldown = 20;
+  playSound(400, 0.1);
+  
+  game.enemies.forEach(enemy => {
+    if (enemy.dead) return;
+    const distance = Math.abs(game.player.x - enemy.x);
+    if (distance < CONFIG.ATTACK_RANGE) {
+      const inFront = game.player.facingRight ? enemy.x > game.player.x : enemy.x < game.player.x;
+      if (inFront) hitEnemy(enemy, 20, 'melee');
+    }
+  });
+  
+  setTimeout(() => {
+    if (game.player.state === 'attack') game.player.state = 'idle';
+  }, 300);
+}
+
+function performKick() {
+  game.player.state = 'kick';
+  game.player.kickCooldown = 30;
+  playSound(500, 0.15);
+  
+  game.enemies.forEach(enemy => {
+    if (enemy.dead) return;
+    const distance = Math.abs(game.player.x - enemy.x);
+    if (distance < CONFIG.KICK_RANGE) {
+      const inFront = game.player.facingRight ? enemy.x > game.player.x : enemy.x < game.player.x;
+      if (inFront) {
+        hitEnemy(enemy, 30, 'melee');
+        enemy.stunned = true;
+        setTimeout(() => { enemy.stunned = false; }, 1000);
+      }
+    }
+  });
+  
+  setTimeout(() => {
+    if (game.player.state === 'kick') game.player.state = 'idle';
+  }, 400);
+}
+
+function performShoot() {
+  const weapon = WEAPONS[game.player.currentWeapon];
+  game.player.state = 'shoot';
+  game.player.shootCooldown = weapon.fireRate;
+  game.player.ammo--;
+  
+  // Update ammo in current slot
+  if (game.player.weaponSlots[game.player.currentSlot]) {
+    game.player.weaponSlots[game.player.currentSlot].ammo = game.player.ammo;
+  }
+  
+  // Compute spread and create bullets
+  const pellets = weapon.spread || 1;
+  for (let i = 0; i < pellets; i++) {
+    // randomize angle slightly for realism
+    const angleOffset = (Math.random() - 0.5) * (pellets > 1 ? 0.35 : 0.08);
+    const baseSpeed = weapon.bulletSpeed;
+    const vx = (game.player.facingRight ? 1 : -1) * (baseSpeed + (Math.random() - 0.5) * 2);
+    const vy = Math.random() * angleOffset * 6;
+
+    game.bullets.push({
+      x: game.player.x + (game.player.facingRight ? 40 : -40),
+      y: game.player.y - game.player.height + 50,
+      velocityX: vx,
+      velocityY: -Math.abs(vy),
+      damage: weapon.damage,
+      active: true,
+      weaponType: game.player.currentWeapon,
+      size: weapon.bulletSize,
+      color: weapon.bulletColor,
+      hasTrail: weapon.bulletTrail,
+      hasGlow: weapon.bulletGlow || false
+    });
+  }
+
+  // Apply simple recoil to player
+  const recoil = weapon.recoil || 0.5;
+  game.player.velocityX += game.player.facingRight ? -recoil : recoil;
+
+  playSound(600, 0.12);
+  
+  setTimeout(() => {
+    if (game.player.state === 'shoot') game.player.state = 'idle';
+  }, 200);
+}
+
+function throwGrenade() {
+  const grenadeType = game.player.currentGrenade;
+  game.player.grenadeCooldown = 60;
+  game.player.grenades[grenadeType]--;
+  
+  game.grenadeObjects.push({
+    x: game.player.x,
+    y: game.player.y - game.player.height,
+    velocityX: game.player.facingRight ? 8 : -8,
+    velocityY: -10,
+    type: grenadeType,
+    timer: 90,
+    active: true
+  });
+  
+  playSound(400, 0.2);
+}
+
+function hitEnemy(enemy, damage, source = 'melee') {
+  // Special boss phase immunity: final phase only vulnerable to melee
+  if (enemy.type === 'BOSS' && enemy.phase === 4 && source !== 'melee') {
+    // Bullets/grenades have reduced effect
+    playSound(200, 0.08);
+    createBlood(enemy.x, enemy.y - enemy.height / 2, 1);
+    // Minor score for hitting
+    game.player.score += 1;
+    return;
+  }
+
+  // Armor absorbs damage
+  const actualDamage = Math.max(1, damage - enemy.armor / 10);
+  // Final phase boss vulnerability: melee deals much more damage
+  let appliedDamage = actualDamage;
+  if (enemy.type === 'BOSS' && enemy.phase === 4 && source === 'melee') {
+    appliedDamage = Math.max(2, Math.floor(actualDamage * 3));
+    playSound(1000, 0.12);
+  }
+  enemy.health -= appliedDamage;
+
+  // Blood effect
+  createBlood(enemy.x, enemy.y - enemy.height / 2);
+
+  // Knockback
+  const direction = enemy.x > game.player.x ? 1 : -1;
+  enemy.x += direction * 50;
+
+  // If this is boss, check for phase transitions
+  if (enemy.type === 'BOSS') {
+    // If health below next threshold, advance phase
+    const hpPercent = enemy.health / enemy.maxHealth;
+    for (let i = enemy.phase - 1; i < enemy.phaseThresholds.length; i++) {
+      if (hpPercent <= enemy.phaseThresholds[i]) {
+        const newPhase = i + 2; // phases start at 1
+        if (newPhase <= enemy.maxPhases && newPhase !== enemy.phase) {
+          startBossPhase(enemy, newPhase);
+        }
+      }
+    }
+  }
+
+  if (enemy.health <= 0) {
+    killEnemy(enemy);
+  }
+
+  game.player.score += appliedDamage;
+}
+
+function startBossPhase(boss, phase) {
+  boss.phase = phase;
+  // Heal a bit on phase start to extend fight
+  const healAmount = Math.floor(boss.maxHealth * 0.12);
+  boss.health = Math.min(boss.maxHealth, boss.health + healAmount);
+  boss.enraged = true;
+  boss.phaseTimer = 300; // temporary enraged period
+  // Reset ability cooldowns
+  boss.abilityCooldowns = { dash: 120, slam: 180, summon: 300, wave: 240, charge: 260 };
+  // Player aura only on final phase
+  game.player.aura = phase === 4;
+  // Play distinctive sound and music change
+  playSound(900, 0.5);
+  playBossMusic(phase);
+  // Spawn a few adds on phase change
+  for (let i = 0; i < phase; i++) {
+    const addX = boss.x + (i % 2 === 0 ? -200 : 200) + Math.random() * 100;
+    spawnEnemy(Math.max(200, Math.min(CONFIG.LEVEL_WIDTH - 200, addX)), 'THUG');
+    spawnEnemy(Math.max(200, Math.min(CONFIG.LEVEL_WIDTH - 200, addX + 80)), 'GUNNER');
+  }
+}
+
+function playBossMusic(phase) {
+  if (!game.audioContext) return;
+  stopMenuMusic();
+  // Stop previous boss music oscillators and interval
+  try {
+    game.bossMusicOsc.forEach(o => { try { o.osc.stop(); } catch(e){} });
+    if (game.bossMusicInterval) {
+      clearInterval(game.bossMusicInterval);
+      game.bossMusicInterval = null;
+    }
+  } catch(e){}
+  game.bossMusicOsc = [];
+
+  // Simple phase-based tone (synth) loop
+  const baseFreq = 120 + phase * 40;
+  const osc = game.audioContext.createOscillator();
+  const gain = game.audioContext.createGain();
+  osc.type = phase >= 3 ? 'sawtooth' : 'square';
+  osc.frequency.value = baseFreq;
+  gain.gain.value = (document.getElementById('musicVolume')?.value || 50) / 100 * 0.06;
+  osc.connect(gain);
+  gain.connect(game.audioContext.destination);
+  osc.start();
+
+  game.bossMusicOsc.push({ osc, gain });
+  // Slowly modulate frequency for interest
+  game.bossMusicInterval = setInterval(() => {
+    try { osc.frequency.value = baseFreq + Math.sin(Date.now() * 0.002) * 20; } catch(e){}
+  }, 400);
+}
+
+function killEnemy(enemy) {
+  enemy.dead = true;
+  game.enemiesDefeated++;
+  game.player.score += ENEMY_TYPES[enemy.type].score;
+  
+  createBlood(enemy.x, enemy.y - enemy.height / 2, 10);
+  playSound(200, 0.3);
+  
+  if (game.enemies.every(e => e.dead)) {
+    game.door.glowing = true;
+  }
+}
+
+function createBlood(x, y, count = 5) {
+  for (let i = 0; i < count; i++) {
+    game.bloodSplatters.push({
+      x: x + (Math.random() - 0.5) * 40,
+      y: y + (Math.random() - 0.5) * 40,
+      size: 5 + Math.random() * 10,
+      alpha: 1,
+      velocityX: (Math.random() - 0.5) * 4,
+      velocityY: (Math.random() - 0.5) * 4 - 2
+    });
+  }
+}
+
+function checkWeaponCollection() {
+  game.weapons.forEach(weapon => {
+    if (weapon.collected) return;
+    
+    const playerLeft = game.player.x - game.player.width / 2;
+    const playerRight = game.player.x + game.player.width / 2;
+    const playerTop = game.player.y - game.player.height;
+    const playerBottom = game.player.y;
+    
+    const withinX = weapon.x >= playerLeft - 20 && weapon.x <= playerRight + 20;
+    const withinY = weapon.y >= playerTop - 20 && weapon.y <= playerBottom + 20;
+    
+    if (withinX && withinY) {
+      weapon.collected = true;
+      
+      // Add to inventory slots
+      addWeaponToSlot(weapon.type);
+      
+      game.player.score += 100;
+      playSound(700, 0.3);
+    }
+  });
+}
+
+function addWeaponToSlot(weaponType) {
+  const weaponData = WEAPONS[weaponType];
+  
+  // Check if weapon already in a slot - add ammo
+  for (let i = 0; i < 4; i++) {
+    if (game.player.weaponSlots[i] && game.player.weaponSlots[i].type === weaponType) {
+      game.player.weaponSlots[i].ammo = Math.min(
+        game.player.weaponSlots[i].ammo + weaponData.maxAmmo,
+        weaponData.maxAmmo * 2 // Max 2x ammo capacity
+      );
+      
+      // If this is current weapon, update ammo
+      if (game.player.currentSlot === i) {
+        game.player.ammo = game.player.weaponSlots[i].ammo;
+      }
+      return;
+    }
+  }
+  
+  // Find empty slot
+  for (let i = 0; i < 4; i++) {
+    if (game.player.weaponSlots[i] === null) {
+      game.player.weaponSlots[i] = {
+        type: weaponType,
+        ammo: weaponData.maxAmmo
+      };
+      
+      // Auto-equip if no weapon equipped
+      if (game.player.currentWeapon === null) {
+        selectWeaponSlot(i);
+      }
+      return;
+    }
+  }
+  
+  // All slots full - replace current slot
+  game.player.weaponSlots[game.player.currentSlot] = {
+    type: weaponType,
+    ammo: weaponData.maxAmmo
+  };
+  selectWeaponSlot(game.player.currentSlot);
+}
+
+function checkGrenadeCollection() {
+  game.grenadePickups.forEach(grenade => {
+    if (grenade.collected) return;
+    
+    const playerLeft = game.player.x - game.player.width / 2;
+    const playerRight = game.player.x + game.player.width / 2;
+    const playerTop = game.player.y - game.player.height;
+    const playerBottom = game.player.y;
+    
+    const withinX = grenade.x >= playerLeft - 20 && grenade.x <= playerRight + 20;
+    const withinY = grenade.y >= playerTop - 20 && grenade.y <= playerBottom + 20;
+    
+    if (withinX && withinY) {
+      grenade.collected = true;
+      game.player.grenades[grenade.type] += 2;
+      game.player.score += 50;
+      playSound(650, 0.3);
+    }
+  });
+}
+
+function checkHeartCollection() {
+  game.hearts.forEach(heart => {
+    if (heart.collected) return;
+    const distance = Math.abs(game.player.x - heart.x);
+    const yDistance = Math.abs(game.player.y - heart.y);
+    if (distance < 40 && yDistance < 60) {
+      heart.collected = true;
+      game.player.health = Math.min(game.player.maxHealth, game.player.health + 1);
+      game.player.score += 50;
+      playSound(600, 0.2);
+    }
+  });
+}
+
+function checkSecretKeyCollection() {
+  if (!game.secretKey || game.secretKey.collected) return;
+  
+  const playerLeft = game.player.x - game.player.width / 2;
+  const playerRight = game.player.x + game.player.width / 2;
+  const playerTop = game.player.y - game.player.height;
+  const playerBottom = game.player.y;
+  
+  const withinX = game.secretKey.x >= playerLeft - 20 && game.secretKey.x <= playerRight + 20;
+  const withinY = game.secretKey.y >= playerTop - 20 && game.secretKey.y <= playerBottom + 20;
+  
+  if (withinX && withinY) {
+    game.secretKey.collected = true;
+    game.hasSecretKey = true;
+    game.player.score += 200;
+    playSound(800, 0.4);
+    
+    // Unlock secret area
+    if (game.secretArea) {
+      game.secretArea.locked = false;
+    }
+  }
+}
+
+function checkSecretEntry() {
+  if (!game.secretArea || game.secretArea.found) return;
+  
+  const distance = Math.abs(game.player.x - game.secretArea.x);
+  if (distance < 60) {
+    if (game.secretArea.locked) {
+      // Need key!
+      playSound(200, 0.2);
+      alert('🔒 LOCKED! Find the SECRET KEY on a platform to unlock!');
+    } else {
+      // Has key, can enter!
+      game.secretArea.found = true;
+      game.player.secretsFound++;
+      enterSecretMiniLevel();
+    }
+  }
+}
+
+function enterSecretMiniLevel() {
+  game.inSecret = true;
+  game.secretTimer = 30 * 60; // 30 seconds at 60 FPS
+  
+  // Save player position
+  game.secretMiniLevel = {
+    returnX: game.player.x,
+    returnY: game.player.y,
+    returnCamera: game.camera.x
+  };
+  
+  // Create mini-level
+  game.secretCoins = [];
+  
+  // Mini-level platforms
+  const miniPlatforms = [
+    { x: 200, y: 400, width: 150, height: 20 },
+    { x: 450, y: 350, width: 150, height: 20 },
+    { x: 700, y: 300, width: 150, height: 20 },
+    { x: 950, y: 350, width: 150, height: 20 },
+    { x: 1200, y: 400, width: 150, height: 20 }
+  ];
+  
+  game.platforms = miniPlatforms;
+  
+  // Spawn coins on platforms
+  miniPlatforms.forEach(platform => {
+    for (let i = 0; i < 3; i++) {
+      game.secretCoins.push({
+        x: platform.x + 30 + i * 40,
+        y: platform.y - 40,
+        collected: false,
+        value: 100
+      });
+    }
+  });
+  
+  // Extra floating coins
+  for (let i = 0; i < 10; i++) {
+    game.secretCoins.push({
+      x: 300 + i * 100,
+      y: 200 + Math.sin(i) * 50,
+      collected: false,
+      value: 50
+    });
+  }
+  
+  // Teleport player to start of mini-level
+  game.player.x = 100;
+  game.player.y = CONFIG.GROUND_Y;
+  game.camera.x = 0;
+  
+  playSound(800, 0.5);
+}
+
+function exitSecretMiniLevel() {
+  game.inSecret = false;
+  
+  // Restore original level
+  createLevel(game.currentLevel);
+  
+  // Restore player position
+  game.player.x = game.secretMiniLevel.returnX;
+  game.player.y = game.secretMiniLevel.returnY;
+  game.camera.x = game.secretMiniLevel.returnCamera;
+  
+  // Mark secret as found
+  game.secretArea.found = true;
+  
+  playSound(800, 0.5);
+}
+
+function updateSecretMiniLevel() {
+  if (!game.inSecret) return;
+  
+  // Update timer
+  game.secretTimer--;
+  
+  // Check coin collection
+  game.secretCoins.forEach(coin => {
+    if (coin.collected) return;
+    
+    const distance = Math.abs(game.player.x - coin.x);
+    const yDistance = Math.abs(game.player.y - coin.y);
+    
+    if (distance < 30 && yDistance < 50) {
+      coin.collected = true;
+      game.player.score += coin.value;
+      playSound(700, 0.1);
+    }
+  });
+  
+  // Exit when time runs out or all coins collected
+  const allCoinsCollected = game.secretCoins.every(c => c.collected);
+  if (game.secretTimer <= 0 || allCoinsCollected) {
+    const bonusScore = allCoinsCollected ? 1000 : 0;
+    game.player.score += bonusScore;
+    exitSecretMiniLevel();
+    if (allCoinsCollected) {
+      alert('SECRET COMPLETE! ALL COINS COLLECTED! +1000 BONUS!');
+    } else {
+      alert('TIME UP! Returning to level...');
+    }
+  }
+}
+
+function checkDoorEntry() {
+  if (!game.door || !game.door.glowing) return;
+  const distance = Math.abs(game.player.x - game.door.x);
+  if (distance < 150) {
+    completeLevel();
+  }
+}
+
+function completeLevel() {
+  const timeTaken = Math.floor((Date.now() - game.levelStartTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+  
+  let rank = 'D';
+  if (game.player.score > 5000 && timeTaken < 180) rank = 'S';
+  else if (game.player.score > 3500 && timeTaken < 240) rank = 'A';
+  else if (game.player.score > 2000 && timeTaken < 300) rank = 'B';
+  else if (game.player.score > 1000) rank = 'C';
+  
+  if (!game.saveData.levelsCompleted.includes(game.currentLevel)) {
+    game.saveData.levelsCompleted.push(game.currentLevel);
+  }
+  game.saveData.levelRanks[game.currentLevel] = rank;
+  game.saveData.levelScores[game.currentLevel] = game.player.score;
+  saveGame();
+  
+  document.getElementById('finalScore').textContent = game.player.score;
+  document.getElementById('enemiesDefeated').textContent = game.enemiesDefeated;
+  document.getElementById('completionTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  document.getElementById('secretsFound').textContent = game.player.secretsFound;
+  
+  const rankColors = { S: '🏆', A: '🥇', B: '🥈', C: '🥉', D: '📋' };
+  document.getElementById('rankDisplay').textContent = rankColors[rank] + ' ' + rank;
+  
+  document.getElementById('levelComplete').classList.add('active');
+  playSound(800, 1);
+}
+
+// ============================================================================
+// ENEMY AI WITH SHOOTING
+// ============================================================================
+function updateEnemies() {
+  game.enemies.forEach(enemy => {
+    if (enemy.dead || enemy.stunned) return;
+    
+    enemy.animTimer++;
+    if (enemy.animTimer > 8) {
+      enemy.animTimer = 0;
+      enemy.animFrame = (enemy.animFrame + 1) % 4;
+    }
+    
+    if (enemy.attackCooldown > 0) enemy.attackCooldown--;
+    if (enemy.shootCooldown > 0) enemy.shootCooldown--;
+    
+    const distanceToPlayer = Math.abs(enemy.x - game.player.x);
+    const yDistance = Math.abs(enemy.y - game.player.y);
+    
+    // Boss special behavior
+    if (enemy.type === 'BOSS') {
+      // Intro aura and delay
+      if (game.bossIntro) {
+        enemy.state = 'idle';
+        enemy.aura = Math.min(1, (enemy.aura || 0) + 0.02);
+        if (game.bossIntroTimer > 0) {
+          game.bossIntroTimer--;
+          return;
+        } else {
+          game.bossIntro = false;
+          // Start boss music
+          playBossMusic(enemy.phase || 1);
+          return;
+        }
+      }
+
+      // Abilities cooldowns
+      enemy.abilityCooldowns.dash = Math.max(0, (enemy.abilityCooldowns.dash || 0) - 1);
+      enemy.abilityCooldowns.slam = Math.max(0, (enemy.abilityCooldowns.slam || 0) - 1);
+      enemy.abilityCooldowns.summon = Math.max(0, (enemy.abilityCooldowns.summon || 0) - 1);
+      enemy.abilityCooldowns.wave = Math.max(0, (enemy.abilityCooldowns.wave || 0) - 1);
+      enemy.abilityCooldowns.charge = Math.max(0, (enemy.abilityCooldowns.charge || 0) - 1);
+
+      // Enraged timer
+      if (enemy.phaseTimer > 0) {
+        enemy.phaseTimer--;
+        if (enemy.phaseTimer === 0) enemy.enraged = false;
+      }
+
+      // Final-phase player aura and boss glow
+      if (enemy.phase === 4) {
+        enemy.aura = Math.min(1, (enemy.aura || 0) + 0.01);
+      } else {
+        enemy.aura = Math.max(0, (enemy.aura || 0) - 0.02);
+      }
+
+      // Use dash ability
+      if (!game.bossIntro && enemy.abilityCooldowns.dash === 0 && Math.random() < 0.02) {
+        const dir = game.player.x > enemy.x ? 1 : -1;
+        enemy.x += dir * 200;
+        enemy.abilityCooldowns.dash = 180;
+        playSound(700, 0.2);
+      }
+
+      // Wave attack for mid-phase pressure
+      if (!game.bossIntro && enemy.abilityCooldowns.wave === 0 && Math.random() < 0.015) {
+        enemy.abilityCooldowns.wave = 220;
+        const waveRange = 260 + enemy.phase * 20;
+        const dist = Math.abs(game.player.x - enemy.x);
+        if (dist < waveRange) {
+          game.player.health = Math.max(0, game.player.health - 2);
+          game.player.x += game.player.x > enemy.x ? 80 : -80;
+          createBlood(game.player.x, game.player.y - game.player.height / 2, 4);
+          playSound(480, 0.25);
+        }
+      }
+
+      // Ground slam
+      if (!game.bossIntro && enemy.abilityCooldowns.slam === 0 && Math.random() < 0.01) {
+        enemy.abilityCooldowns.slam = 240;
+        // If player close, deal strong damage and stun
+        const d = Math.abs(enemy.x - game.player.x);
+        if (d < 250) {
+          game.player.health = Math.max(0, game.player.health - 3);
+          game.player.x += game.player.x > enemy.x ? 120 : -120;
+          createBlood(game.player.x, game.player.y - game.player.height / 2, 5);
+          playSound(120, 0.4);
+          if (game.player.health <= 0) playerDeath();
+        }
+      }
+
+      // Charge attack to close gap quickly
+      if (!game.bossIntro && enemy.abilityCooldowns.charge === 0 && Math.random() < 0.012) {
+        enemy.abilityCooldowns.charge = 280;
+        const direction = game.player.x > enemy.x ? 1 : -1;
+        enemy.chargeDirection = direction;
+        enemy.chargeTimer = 30;
+        playSound(820, 0.15);
+      }
+
+      if (enemy.chargeTimer > 0) {
+        enemy.chargeTimer--;
+        const chargeSpeed = 18;
+        enemy.x += enemy.chargeDirection * chargeSpeed;
+        if (Math.abs(enemy.x - game.player.x) < 80) {
+          game.player.health = Math.max(0, game.player.health - 4);
+          enemy.chargeTimer = 0;
+          createBlood(game.player.x, game.player.y - game.player.height / 2, 5);
+          playSound(100, 0.35);
+          if (game.player.health <= 0) playerDeath();
+        }
+      }
+
+      // Summon adds
+      if (!game.bossIntro && enemy.abilityCooldowns.summon === 0 && Math.random() < 0.006) {
+        enemy.abilityCooldowns.summon = 360;
+        // spawn a couple of mid enemies
+        spawnEnemy(Math.max(300, enemy.x - 200), 'GUNNER');
+        spawnEnemy(Math.min(CONFIG.LEVEL_WIDTH - 300, enemy.x + 200), 'THUG');
+        playSound(500, 0.3);
+      }
+    }
+    
+    if (distanceToPlayer < 600 && yDistance < 100 && game.player.health > 0 && !enemy.blinded) {
+      const direction = game.player.x > enemy.x ? 1 : -1;
+      const speed = ENEMY_TYPES[enemy.type].speed;
+      
+      enemy.facingRight = direction > 0;
+      
+      // Shooting enemies
+      if (enemy.hasGun && distanceToPlayer > 150 && distanceToPlayer < 500) {
+        enemy.state = 'idle';
+        if (enemy.shootCooldown === 0) {
+          enemyShoot(enemy);
+          enemy.shootCooldown = 60;
+        }
+      }
+      // Melee range
+      else if (distanceToPlayer > 80) {
+        enemy.x += direction * speed;
+        enemy.state = 'walk';
+      } else {
+        enemy.state = 'idle';
+        if (enemy.attackCooldown === 0) {
+          attackPlayer(enemy);
+          enemy.attackCooldown = enemy.type === 'BOSS' ? 40 : 60;
+        }
+      }
+    } else {
+      enemy.state = 'idle';
+    }
+
+    // Enemy gravity and platform support
+    const previousY = enemy.y;
+    enemy.velocityY += CONFIG.GRAVITY;
+    enemy.y += enemy.velocityY;
+    enemy.onGround = false;
+    if (enemy.y >= CONFIG.GROUND_Y) {
+      enemy.y = CONFIG.GROUND_Y;
+      enemy.velocityY = 0;
+      enemy.onGround = true;
+    }
+
+    game.platforms.forEach(platform => {
+      const enemyLeft = enemy.x - enemy.width / 2;
+      const enemyRight = enemy.x + enemy.width / 2;
+      const enemyBottom = enemy.y;
+      const wasAbove = previousY <= platform.y;
+      const isBelowOrOn = enemyBottom >= platform.y;
+      const overlapping = enemyRight > platform.x && enemyLeft < platform.x + platform.width;
+
+      if (overlapping && wasAbove && isBelowOrOn && enemy.velocityY >= 0) {
+        enemy.y = platform.y;
+        enemy.velocityY = 0;
+        enemy.onGround = true;
+      }
+    });
+  });
+}
+
+function enemyShoot(enemy) {
+  const weapon = WEAPONS[enemy.weapon];
+
+  // Aim at player with some inaccuracy
+  const dx = (game.player.x - enemy.x);
+  const dy = (game.player.y - enemy.y);
+  const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+  const speed = weapon.bulletSpeed * 0.8;
+  const nx = dx / distance;
+  const ny = dy / distance;
+
+  // Add aim jitter based on enemy type / distance
+  const jitter = Math.min(0.3, 200 / Math.max(distance, 100));
+  const jitterX = (Math.random() - 0.5) * jitter;
+  const jitterY = (Math.random() - 0.5) * jitter * 0.5;
+
+  game.enemyBullets.push({
+    x: enemy.x + (enemy.facingRight ? 40 : -40),
+    y: enemy.y - enemy.height + 50,
+    velocityX: (nx + jitterX) * speed,
+    velocityY: (ny + jitterY) * speed,
+    damage: weapon.damage,
+    active: true,
+    weaponType: enemy.weapon,
+    size: weapon.bulletSize,
+    color: '#ff0000', // Enemy bullets are red
+    hasTrail: true
+  });
+
+  playSound(550, 0.12);
+}
+
+function attackPlayer(enemy) {
+  enemy.state = 'attack';
+  
+  const damage = ENEMY_TYPES[enemy.type].damage / 10;
+  game.player.health = Math.max(0, game.player.health - damage);
+  
+  // Knockback
+  const direction = game.player.x > enemy.x ? 1 : -1;
+  game.player.x += direction * 30;
+  
+  playSound(300, 0.1);
+  
+  if (game.player.health <= 0) {
+    playerDeath();
+  }
+  
+  setTimeout(() => {
+    enemy.state = 'idle';
+  }, 300);
+}
+
+function playerDeath() {
+  setTimeout(() => {
+    // Trigger game over state and stop gameplay
+    game.gameOver = true;
+    try { game.audioContext && game.audioContext.suspend(); } catch (e) {}
+    // Stop boss music oscillators
+    try { game.bossMusicOsc.forEach(o => o.osc.stop()); } catch (e) {}
+  }, 1000);
+}
+
+// ============================================================================
+// GAME LOOP
+// ============================================================================
+function gameLoop() {
+  game.time++;
+  
+  if (game.canvas.style.display !== 'none') {
+    // If game over, show overlay and skip updates
+    if (game.gameOver) {
+      render();
+      renderGameOverOverlay(game.ctx);
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    // If paused, skip game updates but still render pause overlay
+    if (game.paused) {
+      render();
+      renderPauseOverlay(game.ctx);
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    updatePlayer();
+
+    if (game.inSecret) {
+      updateSecretMiniLevel();
+    } else {
+      updateEnemies();
+    }
+
+    updateBullets();
+    updateEnemyBullets();
+    updateGrenades();
+    updateBlood();
+    render();
+  }
+  
+  requestAnimationFrame(gameLoop);
+}
+
+function updateBullets() {
+  game.bullets.forEach(bullet => {
+    if (!bullet.active) return;
+    bullet.x += bullet.velocityX;
+    bullet.y += bullet.velocityY;
+    
+    game.enemies.forEach(enemy => {
+      if (enemy.dead) return;
+      const distance = Math.abs(bullet.x - enemy.x);
+      const yDistance = Math.abs(bullet.y - (enemy.y - enemy.height / 2));
+      if (distance < 40 && yDistance < 50) {
+        bullet.active = false;
+        hitEnemy(enemy, bullet.damage, 'bullet');
+      }
+    });
+    
+    if (bullet.x < game.camera.x - 100 || bullet.x > game.camera.x + CONFIG.CANVAS_WIDTH + 100) {
+      bullet.active = false;
+    }
+  });
+  
+  game.bullets = game.bullets.filter(b => b.active);
+}
+
+function updateEnemyBullets() {
+  game.enemyBullets.forEach(bullet => {
+    if (!bullet.active) return;
+    bullet.x += bullet.velocityX;
+    bullet.y += bullet.velocityY;
+    
+    // Check if hits player
+    const distance = Math.abs(bullet.x - game.player.x);
+    const yDistance = Math.abs(bullet.y - (game.player.y - game.player.height / 2));
+    if (distance < 30 && yDistance < 50) {
+      bullet.active = false;
+      game.player.health = Math.max(0, game.player.health - 0.5);
+      createBlood(game.player.x, game.player.y - game.player.height / 2, 3);
+      playSound(250, 0.1);
+      
+      if (game.player.health <= 0) {
+        playerDeath();
+      }
+    }
+    
+    if (bullet.x < game.camera.x - 100 || bullet.x > game.camera.x + CONFIG.CANVAS_WIDTH + 100) {
+      bullet.active = false;
+    }
+  });
+  
+  game.enemyBullets = game.enemyBullets.filter(b => b.active);
+}
+
+function updateGrenades() {
+  game.grenadeObjects.forEach(grenade => {
+    if (!grenade.active) return;
+    
+    grenade.x += grenade.velocityX;
+    grenade.y += grenade.velocityY;
+    grenade.velocityY += CONFIG.GRAVITY;
+    grenade.timer--;
+    
+    if (grenade.y >= CONFIG.GROUND_Y || grenade.timer <= 0) {
+      explodeGrenade(grenade);
+      grenade.active = false;
+    }
+  });
+  
+  game.grenadeObjects = game.grenadeObjects.filter(g => g.active);
+}
+
+function explodeGrenade(grenade) {
+  const grenadeData = GRENADES[grenade.type];
+  
+  game.enemies.forEach(enemy => {
+    if (enemy.dead) return;
+    const distance = Math.sqrt(Math.pow(enemy.x - grenade.x, 2) + Math.pow(enemy.y - grenade.y, 2));
+    if (distance < grenadeData.radius) {
+      hitEnemy(enemy, grenadeData.damage, 'grenade');
+      
+      if (grenadeData.stun) {
+        enemy.stunned = true;
+        setTimeout(() => { enemy.stunned = false; }, 2000);
+      }
+      
+      if (grenadeData.blind) {
+        enemy.blinded = true;
+        setTimeout(() => { enemy.blinded = false; }, 3000);
+      }
+    }
+  });
+  
+  // Visual explosion
+  for (let i = 0; i < 20; i++) {
+    createBlood(grenade.x, grenade.y, 1);
+  }
+  
+  playSound(150, 0.5);
+}
+
+function updateBlood() {
+  game.bloodSplatters.forEach(blood => {
+    blood.x += blood.velocityX;
+    blood.y += blood.velocityY;
+    blood.velocityY += 0.3;
+    blood.alpha -= 0.01;
+    
+    if (blood.y >= CONFIG.GROUND_Y) {
+      blood.velocityY = 0;
+      blood.velocityX = 0;
+    }
+  });
+  
+  game.bloodSplatters = game.bloodSplatters.filter(b => b.alpha > 0);
+}
+
+// ============================================================================
+// RENDERING WITH ULTRA-REALISTIC TEXTURES
+// ============================================================================
+function render() {
+  const ctx = game.ctx;
+  
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+  
+  ctx.save();
+  ctx.translate(-game.camera.x, 0);
+  
+  // Background
+  drawBackground(ctx);
+  
+  // Ground with texture
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, CONFIG.GROUND_Y + 100, CONFIG.LEVEL_WIDTH, 200);
+  
+  // Ground texture
+  ctx.strokeStyle = '#0a0a1e';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < CONFIG.LEVEL_WIDTH; i += 50) {
+    ctx.beginPath();
+    ctx.moveTo(i, CONFIG.GROUND_Y + 100);
+    ctx.lineTo(i + 50, CONFIG.GROUND_Y + 100);
+    ctx.stroke();
+  }
+  
+  // Platforms
+  game.platforms.forEach(platform => {
+    ctx.fillStyle = '#4a4a5e';
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+    
+    // Metal texture
+    ctx.strokeStyle = '#6a6a7e';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < platform.width; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(platform.x + i, platform.y);
+      ctx.lineTo(platform.x + i, platform.y + platform.height);
+      ctx.stroke();
+    }
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(platform.x, platform.y + platform.height, platform.width, 5);
+  });
+  
+  // Decorations
+  drawDecorations(ctx);
+  
+  // Secret Key (floating animation)
+  if (game.secretKey && !game.secretKey.collected && !game.inSecret) {
+    game.secretKey.floating += 0.1;
+    const floatOffset = Math.sin(game.secretKey.floating) * 10;
+    
+    // Key glow
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 20;
+    
+    // Key body
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(game.secretKey.x, game.secretKey.y + floatOffset, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Key hole
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(game.secretKey.x, game.secretKey.y + floatOffset, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Key teeth
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(game.secretKey.x + 15, game.secretKey.y + floatOffset - 5, 15, 3);
+    ctx.fillRect(game.secretKey.x + 15, game.secretKey.y + floatOffset + 2, 10, 3);
+    ctx.fillRect(game.secretKey.x + 15, game.secretKey.y + floatOffset + 7, 15, 3);
+    
+    ctx.shadowBlur = 0;
+    
+    // Key label
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SECRET KEY', game.secretKey.x, game.secretKey.y + floatOffset - 35);
+    ctx.fillText('🔑', game.secretKey.x, game.secretKey.y + floatOffset - 50);
+  }
+  
+  // Secret area (same design for all levels)
+  if (game.secretArea && !game.secretArea.found && !game.inSecret) {
+    // Locked or unlocked appearance
+    if (game.secretArea.locked) {
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+    } else {
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+    }
+    ctx.fillRect(game.secretArea.x, game.secretArea.y, game.secretArea.width, game.secretArea.height);
+    
+    if (game.secretArea.locked) {
+      // Locked - show lock icon
+      ctx.fillStyle = '#ff0000';
+      ctx.font = 'bold 60px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒', game.secretArea.x + 50, game.secretArea.y + 95);
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('LOCKED', game.secretArea.x + 50, game.secretArea.y + 120);
+      ctx.fillText('FIND KEY!', game.secretArea.x + 50, game.secretArea.y + 140);
+    } else {
+      // Unlocked - show question mark
+      ctx.fillStyle = '#ffff00';
+      ctx.font = 'bold 60px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('?', game.secretArea.x + 50, game.secretArea.y + 95);
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('PRESS E', game.secretArea.x + 50, game.secretArea.y + 130);
+    }
+  }
+  
+  // Secret mini-level coins
+  if (game.inSecret) {
+    game.secretCoins.forEach(coin => {
+      if (!coin.collected) {
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('$', coin.x, coin.y + 7);
+      }
+    });
+  }
+  
+  // Weapons
+  game.weapons.forEach(weapon => {
+    if (!weapon.collected) {
+      ctx.fillStyle = WEAPONS[weapon.type].color;
+      ctx.fillRect(weapon.x - 20, weapon.y - 10, 40, 20);
+      ctx.fillStyle = '#fff';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(WEAPONS[weapon.type].icon, weapon.x, weapon.y + 5);
+    }
+  });
+  
+  // Grenade pickups
+  game.grenadePickups.forEach(grenade => {
+    if (!grenade.collected) {
+      ctx.fillStyle = GRENADES[grenade.type].color;
+      ctx.beginPath();
+      ctx.arc(grenade.x, grenade.y, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(GRENADES[grenade.type].icon, grenade.x, grenade.y + 7);
+    }
+  });
+  
+  // Hearts
+  game.hearts.forEach(heart => {
+    if (!heart.collected) {
+      ctx.font = '40px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('❤️', heart.x, heart.y + 20);
+    }
+  });
+  
+  // Blood
+  game.bloodSplatters.forEach(blood => {
+    ctx.fillStyle = `rgba(139, 0, 0, ${blood.alpha})`;
+    ctx.beginPath();
+    ctx.arc(blood.x, blood.y, blood.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  // Bullets
+  game.bullets.forEach(bullet => {
+    if (bullet.active) {
+      // Glow effect for special bullets
+      if (bullet.hasGlow) {
+        ctx.shadowColor = bullet.color;
+        ctx.shadowBlur = 15;
+      }
+      
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Reset shadow
+      if (bullet.hasGlow) {
+        ctx.shadowBlur = 0;
+      }
+      
+      // Trail
+      if (bullet.hasTrail) {
+        ctx.fillStyle = bullet.color.replace(')', ', 0.5)').replace('rgb', 'rgba');
+        ctx.beginPath();
+        ctx.arc(bullet.x - bullet.velocityX * 0.5, bullet.y - bullet.velocityY * 0.5, bullet.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+  
+  // Enemy bullets
+  game.enemyBullets.forEach(bullet => {
+    if (bullet.active) {
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Trail
+      if (bullet.hasTrail) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+        ctx.beginPath();
+        ctx.arc(bullet.x - bullet.velocityX * 0.5, bullet.y, bullet.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+  
+  // Grenades
+  game.grenadeObjects.forEach(grenade => {
+    if (grenade.active) {
+      ctx.fillStyle = GRENADES[grenade.type].color;
+      ctx.beginPath();
+      ctx.arc(grenade.x, grenade.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  });
+  
+  // Door
+  if (game.door) {
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(game.door.x - 20, game.door.y - 20, game.door.width + 40, game.door.height + 40);
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(game.door.x - 20, game.door.y - 20, game.door.width + 40, game.door.height + 40);
+    
+    if (game.door.glowing) {
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.005) * 0.3;
+    } else {
+      ctx.fillStyle = '#333';
+      ctx.globalAlpha = 0.5;
+    }
+    ctx.fillRect(game.door.x, game.door.y, game.door.width, game.door.height);
+    ctx.globalAlpha = 1;
+    
+    if (game.door.glowing) {
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 30;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(game.door.x, game.door.y, game.door.width, game.door.height);
+      ctx.shadowBlur = 0;
+    }
+  }
+  
+  // Enemies
+  game.enemies.forEach(enemy => {
+    if (enemy.dead) return;
+    
+    drawCharacter(ctx, enemy, false);
+    
+    // Health bar
+    if (enemy.type === 'BOSS' || enemy.type === 'TANK' || enemy.type === 'HEAVY') {
+      const barWidth = 100;
+      const healthPercent = enemy.health / enemy.maxHealth;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(enemy.x - 50, enemy.y - enemy.height - 30, barWidth, 10);
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(enemy.x - 50, enemy.y - enemy.height - 30, barWidth * healthPercent, 10);
+      
+      // Armor bar
+      if (enemy.armor > 0) {
+        ctx.fillStyle = '#4a4a5e';
+        ctx.fillRect(enemy.x - 50, enemy.y - enemy.height - 20, barWidth, 5);
+      }
+    }
+  });
+  
+  // Player
+  drawCharacter(ctx, game.player, true);
+  
+  ctx.restore();
+  
+  // HUD
+  drawHUD(ctx);
+  // Boss UI overlay (outside camera transform)
+  drawBossUI(game.ctx);
+  if (game.bossIntro) {
+    renderBossIntroOverlay(game.ctx);
+  }
+}
+
+function drawBackground(ctx) {
+  // Secret mini-level has special background
+  if (game.inSecret) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, CONFIG.CANVAS_HEIGHT);
+    gradient.addColorStop(0, '#ff00ff');
+    gradient.addColorStop(0.5, '#8b00ff');
+    gradient.addColorStop(1, '#4b0082');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, CONFIG.LEVEL_WIDTH, CONFIG.CANVAS_HEIGHT);
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 50; i++) {
+      const x = (i * 123) % 1500;
+      const y = (i * 456) % 600;
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.font = 'bold 100px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SECRET LEVEL', 700, 150);
+    ctx.textAlign = 'left';
+    return;
+  }
+
+  const bg = game.decorations.find(d => d.type === 'background');
+  if (!bg) return;
+  const theme = bg.theme;
+
+  // ── helpers ──────────────────────────────────────────────────────────────────
+  const W = CONFIG.LEVEL_WIDTH;
+  const H = CONFIG.CANVAS_HEIGHT;
+  const GY = CONFIG.GROUND_Y; // where ground starts
+
+  // Draw city buildings along the back wall
+  function drawCityBuildings(palette, winColor, density = 20, baseY = GY - 80) {
+    for (let i = 0; i < density; i++) {
+      const bx = i * (W / density);
+      const bh = 180 + ((i * 137) % 220);
+      const bw = (W / density) - 8;
+      ctx.fillStyle = palette[i % palette.length];
+      ctx.fillRect(bx, baseY - bh, bw, bh);
+      // windows
+      ctx.fillStyle = winColor;
+      for (let r = 0; r < Math.floor(bh / 32); r++) {
+        for (let c = 0; c < Math.floor(bw / 22); c++) {
+          if ((i + r + c) % 3 !== 0)
+            ctx.fillRect(bx + 6 + c * 22, baseY - bh + 8 + r * 32, 14, 18);
+        }
+      }
+    }
+  }
+
+  // Draw a road / ground surface
+  function drawRoad(color, lineColor) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    // dashed center line
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 4;
+    ctx.setLineDash([60, 40]);
+    ctx.beginPath();
+    ctx.moveTo(0, GY + 50);
+    ctx.lineTo(W, GY + 50);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Draw sidewalk tiles
+  function drawSidewalk() {
+    ctx.fillStyle = '#c8c8c8';
+    ctx.fillRect(0, GY, W, 20);
+    ctx.strokeStyle = '#a0a0a0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < W; i += 60) {
+      ctx.beginPath();
+      ctx.moveTo(i, GY);
+      ctx.lineTo(i, GY + 20);
+      ctx.stroke();
+    }
+  }
+
+  // Draw sky
+  function drawSky(top, bot) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, top);
+    g.addColorStop(1, bot);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Draw stars for night scenes
+  function drawStars(count = 80) {
+    ctx.fillStyle = '#ffffffcc';
+    for (let i = 0; i < count; i++) {
+      const sx = (i * 547) % W;
+      const sy = (i * 311) % (GY - 100);
+      const sr = (i % 3 === 0) ? 2 : 1;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Draw a moon
+  function drawMoon(x, y, r) {
+    ctx.fillStyle = '#fffde0';
+    ctx.shadowColor = '#ffffaa';
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw sun
+  function drawSun(x, y) {
+    ctx.fillStyle = '#ffe066';
+    ctx.shadowColor = '#ffcc00';
+    ctx.shadowBlur = 40;
+    ctx.beginPath();
+    ctx.arc(x, y, 45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw metal/concrete floor for indoor themes
+  function drawConcrete(color, lineColor) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < W; i += 80) {
+      ctx.beginPath(); ctx.moveTo(i, GY); ctx.lineTo(i, H); ctx.stroke();
+    }
+    for (let j = GY; j < H; j += 80) {
+      ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(W, j); ctx.stroke();
+    }
+  }
+
+  // Draw water
+  function drawWater() {
+    ctx.fillStyle = '#1a4a6e';
+    ctx.fillRect(0, GY + 60, W, H);
+    ctx.strokeStyle = '#2a6a9e';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < W; i += 120) {
+      ctx.beginPath();
+      ctx.moveTo(i, GY + 70);
+      ctx.quadraticCurveTo(i + 60, GY + 60, i + 120, GY + 70);
+      ctx.stroke();
+    }
+  }
+
+  // Draw a large background building facade
+  function drawBuildingFacade(color, accentColor, winOn) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, W, GY);
+    // floor lines
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 2;
+    const floorH = 80;
+    for (let y = 80; y < GY; y += floorH) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    // column lines
+    for (let x = 0; x < W; x += 120) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, GY); ctx.stroke();
+    }
+    // windows
+    ctx.fillStyle = winOn;
+    for (let y = 90; y < GY - 40; y += floorH) {
+      for (let x = 15; x < W; x += 120) {
+        ctx.fillRect(x, y, 80, 45);
+      }
+    }
+  }
+
+  // ── per-theme rendering ───────────────────────────────────────────────────────
+  if (theme === 'street') {
+    // Daytime city street
+    drawSky('#87ceeb', '#c8e8f8');
+    drawSun(300, 80);
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    [[200, 60, 70, 30], [600, 45, 90, 35], [1200, 70, 60, 25]].forEach(([cx, cy, cw, ch]) => {
+      ctx.beginPath(); ctx.ellipse(cx, cy, cw, ch, 0, 0, Math.PI * 2); ctx.fill();
+    });
+    drawCityBuildings(['#b0b8c4','#9aa5b4','#c2c9d4','#8a9ab0'], 'rgba(255,255,180,0.7)');
+    drawSidewalk();
+    drawRoad('#4a4a4a', '#ffe066');
+    // Manhole cover
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(800, GY + 12, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(800, GY + 12, 16, 0, Math.PI * 2); ctx.stroke();
+    // Streetlight poles
+    for (let sx = 400; sx < W; sx += 500) {
+      ctx.fillStyle = '#888';
+      ctx.fillRect(sx - 5, GY - 200, 10, 200);
+      ctx.fillStyle = '#ffee99';
+      ctx.fillRect(sx - 20, GY - 210, 40, 20);
+    }
+  }
+
+  else if (theme === 'alley') {
+    // Dark narrow alley
+    drawSky('#1a1a2a', '#2c2c3c');
+    drawStars(40);
+    // Brick walls
+    const brickColors = ['#6b3d2e','#7a4535','#5c3328'];
+    for (let bx = 0; bx < W; bx += 400) {
+      ctx.fillStyle = brickColors[Math.floor(bx / 400) % brickColors.length];
+      ctx.fillRect(bx, 0, 390, GY);
+      ctx.strokeStyle = '#3a1f18';
+      ctx.lineWidth = 1;
+      for (let r = 0; r < GY; r += 18) {
+        const offset = (Math.floor(r / 18) % 2) * 30;
+        for (let c = offset; c < 390; c += 60) {
+          ctx.strokeRect(bx + c, r, 58, 16);
+        }
+      }
+    }
+    // Graffiti streaks
+    ['#ff0066','#00ffcc','#ffee00'].forEach((col, gi) => {
+      ctx.fillStyle = col + '88';
+      ctx.fillRect(gi * 900 + 200, GY - 180, 120, 60);
+    });
+    drawConcrete('#2a2a2a', '#333');
+    // Puddle reflections
+    ctx.fillStyle = 'rgba(100, 120, 180, 0.35)';
+    ctx.ellipse(600, GY + 10, 80, 12, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  else if (theme === 'warehouse') {
+    // Warehouse interior
+    drawSky('#1c2030', '#262d40');
+    // Corrugated metal walls
+    ctx.fillStyle = '#2a3040';
+    ctx.fillRect(0, 0, W, GY);
+    ctx.strokeStyle = '#3a4050';
+    ctx.lineWidth = 3;
+    for (let x = 0; x < W; x += 30) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, GY); ctx.stroke();
+    }
+    // High windows with light shafts
+    for (let wx = 200; wx < W; wx += 600) {
+      ctx.fillStyle = '#ffffe080';
+      ctx.fillRect(wx, 30, 150, 80);
+      // light shaft
+      ctx.fillStyle = 'rgba(255,255,180,0.08)';
+      ctx.beginPath();
+      ctx.moveTo(wx, 110); ctx.lineTo(wx + 150, 110);
+      ctx.lineTo(wx + 200, GY); ctx.lineTo(wx - 50, GY);
+      ctx.closePath(); ctx.fill();
+    }
+    // Hanging lamps
+    for (let lx = 300; lx < W; lx += 500) {
+      ctx.strokeStyle = '#888'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, 80); ctx.stroke();
+      ctx.fillStyle = '#ffee88';
+      ctx.shadowColor = '#ffee88'; ctx.shadowBlur = 25;
+      ctx.beginPath(); ctx.arc(lx, 85, 15, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    drawConcrete('#2e2e2e', '#3a3a3a');
+    // Painted floor markings
+    ctx.strokeStyle = '#ffcc00aa';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([50, 30]);
+    ctx.beginPath(); ctx.moveTo(0, GY + 30); ctx.lineTo(W, GY + 30); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  else if (theme === 'market') {
+    // Outdoor market / bazaar
+    drawSky('#f7c96b', '#f4a030');
+    drawSun(W - 200, 70);
+    // Distant low buildings
+    drawCityBuildings(['#d4a85a','#c9975c','#e0b870'], 'rgba(255,200,100,0.5)', 14, GY - 60);
+    drawSidewalk();
+    drawRoad('#b89060', '#cc9933');
+    // Market awning stripes
+    for (let ax = 0; ax < W; ax += 300) {
+      const aColors = ['#e63946','#2196f3','#4caf50','#ff9800'];
+      ctx.fillStyle = aColors[(ax / 300) % aColors.length];
+      ctx.beginPath();
+      ctx.moveTo(ax, GY - 160); ctx.lineTo(ax + 280, GY - 160);
+      ctx.lineTo(ax + 280, GY - 120); ctx.lineTo(ax, GY - 120);
+      ctx.closePath(); ctx.fill();
+      // Fringe
+      for (let fx = ax; fx < ax + 280; fx += 20) {
+        ctx.fillRect(fx, GY - 120, 12, 18);
+      }
+    }
+  }
+
+  else if (theme === 'bridge') {
+    // Bridge over water
+    drawSky('#a8d8ea', '#d0eaf5');
+    drawSun(500, 60);
+    // Distant city skyline
+    ctx.fillStyle = '#6a7a8a99';
+    for (let i = 0; i < 20; i++) {
+      const bh = 80 + (i * 73) % 120;
+      ctx.fillRect(i * (W / 20), GY - bh, W / 20 - 4, bh);
+    }
+    // Water
+    drawWater();
+    // Bridge road surface
+    ctx.fillStyle = '#888';
+    ctx.fillRect(0, GY, W, 30);
+    // Bridge cable towers
+    for (let tx = 600; tx < W; tx += 1200) {
+      ctx.fillStyle = '#999';
+      ctx.fillRect(tx - 15, GY - 300, 30, 300);
+      ctx.fillRect(tx + 200 - 15, GY - 300, 30, 300);
+      // Cables
+      ctx.strokeStyle = '#bbb'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tx, GY - 300); ctx.lineTo(tx + 100, GY); ctx.lineTo(tx + 200, GY - 300); ctx.stroke();
+    }
+    // Guard rails
+    ctx.strokeStyle = '#aaa'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(0, GY); ctx.lineTo(W, GY); ctx.stroke();
+    ctx.strokeStyle = '#999'; ctx.lineWidth = 3;
+    for (let px = 0; px < W; px += 60) {
+      ctx.beginPath(); ctx.moveTo(px, GY); ctx.lineTo(px, GY - 40); ctx.stroke();
+    }
+  }
+
+  else if (theme === 'industrial') {
+    // Industrial facility
+    drawSky('#3a3a4a', '#2a2a3a');
+    drawStars(30);
+    // Large factory building
+    ctx.fillStyle = '#2c3040';
+    ctx.fillRect(0, 0, W, GY);
+    // Riveted panels
+    ctx.strokeStyle = '#3a4050';
+    ctx.lineWidth = 4;
+    for (let x = 0; x < W; x += 80) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, GY); ctx.stroke(); }
+    for (let y = 0; y < GY; y += 80) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    // Rivets
+    ctx.fillStyle = '#4a5060';
+    for (let x = 40; x < W; x += 80) {
+      for (let y = 40; y < GY; y += 80) {
+        ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    // Pipes overhead
+    ctx.strokeStyle = '#778899'; ctx.lineWidth = 20;
+    for (let px = 0; px < W; px += 300) {
+      ctx.beginPath(); ctx.moveTo(px, 30); ctx.lineTo(px + 250, 30); ctx.stroke();
+    }
+    // Glowing vents
+    for (let vx = 200; vx < W; vx += 400) {
+      ctx.fillStyle = '#ff4400aa';
+      ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 20;
+      ctx.fillRect(vx, GY - 80, 60, 40);
+      ctx.shadowBlur = 0;
+    }
+    drawConcrete('#252525', '#303030');
+  }
+
+  else if (theme === 'dockyard') {
+    // Harbor / dockyard
+    drawSky('#1e3a5f', '#2a5080');
+    drawMoon(W - 300, 80, 50);
+    drawStars(60);
+    drawWater();
+    // Dock planks
+    ctx.fillStyle = '#5c4a30';
+    ctx.fillRect(0, GY, W, 40);
+    ctx.strokeStyle = '#3d3020'; ctx.lineWidth = 2;
+    for (let dx = 0; dx < W; dx += 25) {
+      ctx.beginPath(); ctx.moveTo(dx, GY); ctx.lineTo(dx, GY + 40); ctx.stroke();
+    }
+    // Cranes (background)
+    ctx.fillStyle = '#4a5a6a';
+    for (let cx = 400; cx < W; cx += 800) {
+      ctx.fillRect(cx, GY - 300, 20, 300);
+      ctx.fillRect(cx, GY - 300, 200, 20);
+      // Crane cable
+      ctx.strokeStyle = '#8899aa'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx + 200, GY - 290); ctx.lineTo(cx + 150, GY - 50); ctx.stroke();
+    }
+    // Warehouse walls in background
+    ctx.fillStyle = '#2a3545';
+    for (let wx = 0; wx < W; wx += 300) {
+      ctx.fillRect(wx, GY - 200, 280, 200);
+    }
+    // Harbor lights
+    for (let lx = 100; lx < W; lx += 200) {
+      ctx.fillStyle = '#ffcc5588';
+      ctx.shadowColor = '#ffcc55'; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(lx, GY - 10, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  else if (theme === 'subway') {
+    // Underground subway
+    ctx.fillStyle = '#111118';
+    ctx.fillRect(0, 0, W, H);
+    // Tiled walls
+    ctx.fillStyle = '#cccccc';
+    ctx.fillRect(0, GY - 300, W, 300);
+    ctx.strokeStyle = '#aaaaaa'; ctx.lineWidth = 1;
+    for (let tx = 0; tx < W; tx += 40) {
+      ctx.beginPath(); ctx.moveTo(tx, GY - 300); ctx.lineTo(tx, GY); ctx.stroke();
+    }
+    for (let ty = GY - 300; ty < GY; ty += 40) {
+      ctx.beginPath(); ctx.moveTo(0, ty); ctx.lineTo(W, ty); ctx.stroke();
+    }
+    // Colored stripe
+    ctx.fillStyle = '#e63946';
+    ctx.fillRect(0, GY - 120, W, 20);
+    ctx.fillStyle = '#2196f3';
+    ctx.fillRect(0, GY - 100, W, 10);
+    // Platform
+    ctx.fillStyle = '#888888';
+    ctx.fillRect(0, GY, W, 40);
+    // Platform edge stripe
+    ctx.fillStyle = '#ffee00';
+    ctx.fillRect(0, GY, W, 8);
+    // Overhead lights
+    for (let lx = 150; lx < W; lx += 300) {
+      ctx.fillStyle = '#ffffee';
+      ctx.shadowColor = '#ffffcc'; ctx.shadowBlur = 30;
+      ctx.fillRect(lx - 40, 20, 80, 15);
+      ctx.shadowBlur = 0;
+    }
+    // Rail tracks (visible at ground level)
+    ctx.fillStyle = '#333';
+    ctx.fillRect(0, GY + 40, W, 30);
+    ctx.fillStyle = '#777';
+    ctx.fillRect(0, GY + 43, W, 5);
+    ctx.fillRect(0, GY + 55, W, 5);
+  }
+
+  else if (theme === 'mall') {
+    // Indoor shopping mall
+    drawSky('#e8e0d0', '#d4ccc0');
+    // Ceiling
+    ctx.fillStyle = '#f0ece0';
+    ctx.fillRect(0, 0, W, GY);
+    // Skylight panels
+    for (let slx = 100; slx < W; slx += 400) {
+      ctx.fillStyle = '#d0eaf860';
+      ctx.fillRect(slx, 10, 280, 60);
+      ctx.strokeStyle = '#c0d0e0'; ctx.lineWidth = 2;
+      ctx.strokeRect(slx, 10, 280, 60);
+      // Light shafts
+      ctx.fillStyle = 'rgba(200,230,255,0.08)';
+      ctx.beginPath();
+      ctx.moveTo(slx, 70); ctx.lineTo(slx + 280, 70);
+      ctx.lineTo(slx + 320, GY); ctx.lineTo(slx - 40, GY);
+      ctx.closePath(); ctx.fill();
+    }
+    // Shop fronts (background)
+    for (let sfx = 0; sfx < W; sfx += 200) {
+      const shopColors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6'];
+      ctx.fillStyle = shopColors[(sfx / 200) % shopColors.length] + '88';
+      ctx.fillRect(sfx, GY - 200, 180, 200);
+      ctx.strokeStyle = '#aaa'; ctx.lineWidth = 3;
+      ctx.strokeRect(sfx, GY - 200, 180, 200);
+      // Shop window
+      ctx.fillStyle = '#aacce888';
+      ctx.fillRect(sfx + 20, GY - 180, 140, 100);
+    }
+    // Marble floor
+    ctx.fillStyle = '#e8e8e8';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    ctx.strokeStyle = '#ddd'; ctx.lineWidth = 2;
+    for (let i = 0; i < W; i += 100) { ctx.beginPath(); ctx.moveTo(i, GY); ctx.lineTo(i, H); ctx.stroke(); }
+    for (let j = GY; j < H; j += 100) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(W, j); ctx.stroke(); }
+  }
+
+  else if (theme === 'office') {
+    // Multi-floor office building interior
+    drawBuildingFacade('#2c3e50', '#3a4f62', '#1e2b38');
+    drawConcrete('#3a3a3a', '#444');
+  }
+
+  else if (theme === 'construction') {
+    // Construction site
+    drawSky('#e8a84a', '#f5c870');
+    drawSun(200, 90);
+    // Dirt/mud ground
+    ctx.fillStyle = '#7a5a30';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    // Scaffold structures
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 5;
+    for (let sx = 200; sx < W; sx += 400) {
+      // Vertical poles
+      ctx.beginPath(); ctx.moveTo(sx, GY); ctx.lineTo(sx, GY - 250); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx + 120, GY); ctx.lineTo(sx + 120, GY - 250); ctx.stroke();
+      // Horizontal bars
+      for (let hy = GY - 60; hy > GY - 250; hy -= 60) {
+        ctx.beginPath(); ctx.moveTo(sx, hy); ctx.lineTo(sx + 120, hy); ctx.stroke();
+      }
+      // Diagonal braces
+      ctx.strokeStyle = '#777'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(sx, GY - 60); ctx.lineTo(sx + 120, GY - 120); ctx.stroke();
+      ctx.strokeStyle = '#888'; ctx.lineWidth = 5;
+    }
+    // Concrete mixer
+    ctx.fillStyle = '#999';
+    ctx.beginPath(); ctx.arc(W / 2, GY - 60, 40, 0, Math.PI * 2); ctx.fill();
+    // Warning tape
+    ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 8; ctx.setLineDash([30, 15]);
+    ctx.beginPath(); ctx.moveTo(0, GY + 5); ctx.lineTo(W, GY + 5); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  else if (theme === 'airfield') {
+    // Airfield / tarmac
+    drawSky('#6ab4d8', '#a8d4ee');
+    drawSun(W - 300, 70);
+    // Tarmac
+    ctx.fillStyle = '#363636';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    // Runway markings
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.setLineDash([80, 40]);
+    ctx.beginPath(); ctx.moveTo(0, GY + 20); ctx.lineTo(W, GY + 20); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 4; ctx.setLineDash([40, 20]);
+    ctx.beginPath(); ctx.moveTo(0, GY + 40); ctx.lineTo(W, GY + 40); ctx.stroke();
+    ctx.setLineDash([]);
+    // Hangars in background
+    for (let hx = 0; hx < W; hx += 500) {
+      ctx.fillStyle = '#888';
+      ctx.fillRect(hx, GY - 180, 460, 180);
+      // Hangar arch
+      ctx.fillStyle = '#777';
+      ctx.beginPath();
+      ctx.ellipse(hx + 230, GY - 180, 230, 80, 0, Math.PI, 0);
+      ctx.fill();
+    }
+    // Control tower
+    ctx.fillStyle = '#aaa';
+    ctx.fillRect(W / 2 - 30, GY - 320, 60, 320);
+    ctx.fillStyle = '#cce8ff';
+    ctx.fillRect(W / 2 - 50, GY - 360, 100, 50);
+  }
+
+  else if (theme === 'powerplant') {
+    // Power plant
+    drawSky('#1a1a2a', '#2a2a3a');
+    drawStars(40);
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(0, 0, W, GY);
+    // Cooling towers
+    for (let ctx2x = 100; ctx2x < W; ctx2x += 600) {
+      ctx.fillStyle = '#444';
+      ctx.beginPath();
+      ctx.moveTo(ctx2x, GY);
+      ctx.quadraticCurveTo(ctx2x - 40, GY - 150, ctx2x + 60, GY - 300);
+      ctx.lineTo(ctx2x + 140, GY - 300);
+      ctx.quadraticCurveTo(ctx2x + 240, GY - 150, ctx2x + 200, GY);
+      ctx.closePath();
+      ctx.fill();
+      // Steam
+      for (let si = 0; si < 3; si++) {
+        ctx.fillStyle = 'rgba(200,200,220,0.15)';
+        ctx.beginPath();
+        ctx.ellipse(ctx2x + 100 + si * 10, GY - 310 - si * 20, 30 + si * 15, 15 + si * 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // Electrical pylons
+    ctx.strokeStyle = '#558877'; ctx.lineWidth = 4;
+    for (let px = 300; px < W; px += 400) {
+      ctx.beginPath(); ctx.moveTo(px, GY - 200); ctx.lineTo(px, GY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px - 40, GY - 150); ctx.lineTo(px + 40, GY - 150); ctx.stroke();
+      // wires
+      ctx.strokeStyle = '#33aa77'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(px + 40, GY - 150); ctx.lineTo(px + 440, GY - 150); ctx.stroke();
+      ctx.strokeStyle = '#558877'; ctx.lineWidth = 4;
+    }
+    drawConcrete('#202020', '#2a2a2a');
+    // Hazard floor stripes
+    ctx.fillStyle = '#ffcc0044';
+    for (let i = 0; i < W; i += 80) {
+      ctx.fillRect(i, GY, 40, 30);
+    }
+  }
+
+  else if (theme === 'prison') {
+    // Prison interior
+    ctx.fillStyle = '#3a3a3a';
+    ctx.fillRect(0, 0, W, H);
+    // Concrete wall blocks
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, 0, W, GY);
+    ctx.strokeStyle = '#444'; ctx.lineWidth = 3;
+    for (let r = 0; r < GY; r += 40) {
+      const off = (Math.floor(r / 40) % 2) * 40;
+      for (let c = off; c < W; c += 80) {
+        ctx.strokeRect(c, r, 78, 38);
+      }
+    }
+    // Cell bars
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 6;
+    for (let bx = 200; bx < W; bx += 150) {
+      for (let by = GY - 180; by < GY; by += 30) {
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, by + 25); ctx.stroke();
+      }
+    }
+    // Fluorescent overhead lights
+    for (let lx = 150; lx < W; lx += 350) {
+      ctx.fillStyle = '#eeeeff';
+      ctx.shadowColor = '#aaaaff'; ctx.shadowBlur = 20;
+      ctx.fillRect(lx - 40, 15, 80, 12);
+      ctx.shadowBlur = 0;
+    }
+    drawConcrete('#3a3a3a', '#444');
+  }
+
+  else if (theme === 'hospital') {
+    // Hospital interior
+    ctx.fillStyle = '#e8f0f4';
+    ctx.fillRect(0, 0, W, H);
+    // White/green walls
+    ctx.fillStyle = '#f4f8f4';
+    ctx.fillRect(0, 0, W, GY);
+    // Wainscoting
+    ctx.fillStyle = '#c8dcc8';
+    ctx.fillRect(0, GY - 80, W, 80);
+    // Grid ceiling
+    ctx.strokeStyle = '#dde6dd'; ctx.lineWidth = 2;
+    for (let cx2 = 0; cx2 < W; cx2 += 120) { ctx.beginPath(); ctx.moveTo(cx2, 0); ctx.lineTo(cx2, GY - 80); ctx.stroke(); }
+    for (let cy = 0; cy < GY - 80; cy += 120) { ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke(); }
+    // Ceiling lights
+    for (let lx = 100; lx < W; lx += 240) {
+      ctx.fillStyle = '#fffef0';
+      ctx.shadowColor = '#ffffcc'; ctx.shadowBlur = 20;
+      ctx.fillRect(lx - 30, 20, 60, 20);
+      ctx.shadowBlur = 0;
+    }
+    // Red cross signs
+    for (let sx = 400; sx < W; sx += 600) {
+      ctx.fillStyle = '#e63946';
+      ctx.fillRect(sx - 10, GY - 200, 20, 60);
+      ctx.fillRect(sx - 30, GY - 180, 60, 20);
+    }
+    // Linoleum floor
+    ctx.fillStyle = '#e0e8e0';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    ctx.strokeStyle = '#ccd6cc'; ctx.lineWidth = 1;
+    for (let i = 0; i < W; i += 60) { ctx.beginPath(); ctx.moveTo(i, GY); ctx.lineTo(i, H); ctx.stroke(); }
+  }
+
+  else if (theme === 'garage') {
+    // Parking garage
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#3a3a3a';
+    ctx.fillRect(0, 0, W, GY);
+    // Concrete pillars
+    ctx.fillStyle = '#4a4a4a';
+    for (let px = 200; px < W; px += 300) {
+      ctx.fillRect(px - 20, 0, 40, GY);
+      ctx.strokeStyle = '#555'; ctx.lineWidth = 2;
+      ctx.strokeRect(px - 20, 0, 40, GY);
+    }
+    // Low ceiling
+    ctx.fillStyle = '#383838';
+    ctx.fillRect(0, 0, W, 40);
+    // Pipe conduits
+    ctx.strokeStyle = '#666'; ctx.lineWidth = 10;
+    for (let pipe = 0; pipe < W; pipe += 400) {
+      ctx.beginPath(); ctx.moveTo(pipe, 20); ctx.lineTo(pipe + 350, 20); ctx.stroke();
+    }
+    // Painted parking lines on floor
+    ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 3;
+    for (let pl = 0; pl < W; pl += 120) {
+      ctx.beginPath(); ctx.moveTo(pl, GY); ctx.lineTo(pl, GY + 60); ctx.stroke();
+    }
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, GY + 60); ctx.lineTo(W, GY + 60); ctx.stroke();
+    // Oil stains on floor
+    ctx.fillStyle = '#111';
+    for (let os = 100; os < W; os += 300) {
+      ctx.beginPath(); ctx.ellipse(os, GY + 30, 25, 10, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    drawConcrete('#2e2e2e', '#383838');
+  }
+
+  else if (theme === 'garden') {
+    // Garden district - daytime outdoors
+    drawSky('#87ceeb', '#c8e8f8');
+    drawSun(250, 70);
+    // Clouds
+    ctx.fillStyle = '#ffffffdd';
+    [[300,55,80,35],[700,40,100,40],[1400,65,70,30]].forEach(([cx,cy,cw,ch]) => {
+      ctx.beginPath(); ctx.ellipse(cx,cy,cw,ch,0,0,Math.PI*2); ctx.fill();
+    });
+    // Trees in background
+    for (let tx = 50; tx < W; tx += 180) {
+      const th = 100 + (tx % 60);
+      ctx.fillStyle = '#2e8b57';
+      ctx.beginPath(); ctx.arc(tx, GY - th, 35, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#228b22';
+      ctx.beginPath(); ctx.arc(tx + 15, GY - th - 20, 25, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(tx - 8, GY - th + 30, 16, th - 30);
+    }
+    // Grass
+    const grassGrad = ctx.createLinearGradient(0, GY, 0, GY + 80);
+    grassGrad.addColorStop(0, '#5a9e3a');
+    grassGrad.addColorStop(1, '#3d7a24');
+    ctx.fillStyle = grassGrad;
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    // Grass tufts
+    ctx.strokeStyle = '#4a8a30'; ctx.lineWidth = 2;
+    for (let g = 0; g < W; g += 20) {
+      ctx.beginPath(); ctx.moveTo(g, GY); ctx.lineTo(g + 5, GY - 10); ctx.stroke();
+    }
+    // Garden path
+    ctx.fillStyle = '#c8a878';
+    ctx.fillRect(0, GY + 5, W, 20);
+    ctx.strokeStyle = '#b09868'; ctx.lineWidth = 1;
+    for (let sp = 0; sp < W; sp += 50) {
+      ctx.strokeRect(sp, GY + 5, 48, 18);
+    }
+  }
+
+  else if (theme === 'sportsblock') {
+    // Sports area / court
+    drawSky('#6ab4d8', '#b0d8f0');
+    drawSun(300, 60);
+    // Court floor
+    ctx.fillStyle = '#c85020';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    // Court lines
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+    for (let cl = 0; cl < W; cl += 200) {
+      ctx.beginPath(); ctx.moveTo(cl, GY); ctx.lineTo(cl, GY + 80); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(0, GY + 40); ctx.lineTo(W, GY + 40); ctx.stroke();
+    // Bleachers in background
+    ctx.fillStyle = '#9aa5b4';
+    for (let bl = 0; bl < W; bl += 100) {
+      ctx.fillRect(bl, GY - 150, 96, 150);
+      ctx.strokeStyle = '#7f8c9e'; ctx.lineWidth = 2;
+      ctx.strokeRect(bl, GY - 150, 96, 150);
+    }
+    // Stadium lights
+    for (let sl = 200; sl < W; sl += 600) {
+      ctx.fillStyle = '#888';
+      ctx.fillRect(sl - 10, GY - 280, 20, 130);
+      ctx.fillStyle = '#fffde0';
+      ctx.shadowColor = '#fffde0'; ctx.shadowBlur = 30;
+      ctx.fillRect(sl - 40, GY - 290, 80, 20);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  else if (theme === 'transit') {
+    // Train station / transit hub
+    drawSky('#2a3a4a', '#3a4a5a');
+    drawStars(50);
+    drawMoon(W - 200, 60, 35);
+    // Station hall
+    ctx.fillStyle = '#3c3c3c';
+    ctx.fillRect(0, 0, W, GY);
+    // Arched ceiling
+    for (let ax = 0; ax < W; ax += 300) {
+      ctx.strokeStyle = '#666'; ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(ax + 150, GY, 200, Math.PI, 0);
+      ctx.stroke();
+    }
+    // Large departure board
+    ctx.fillStyle = '#000';
+    ctx.fillRect(W / 2 - 200, 60, 400, 100);
+    ctx.fillStyle = '#00ff66';
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('DEPARTURES', W / 2, 100);
+    ctx.font = '14px monospace';
+    ctx.fillText('TRAIN A ........ 22:40', W / 2, 130);
+    ctx.fillText('TRAIN B ........ 22:58', W / 2, 148);
+    ctx.textAlign = 'left';
+    // Platform
+    ctx.fillStyle = '#888';
+    ctx.fillRect(0, GY, W, 40);
+    ctx.fillStyle = '#ffee00';
+    ctx.fillRect(0, GY, W, 8);
+    // Track
+    ctx.fillStyle = '#444';
+    ctx.fillRect(0, GY + 40, W, 25);
+    ctx.fillStyle = '#777';
+    ctx.fillRect(0, GY + 43, W, 5); ctx.fillRect(0, GY + 52, W, 5);
+  }
+
+  else if (theme === 'fireescape') {
+    // Fire escape / rooftop side
+    drawSky('#ff4400', '#cc2200');
+    drawStars(20);
+    // Brick building face
+    for (let bx = 0; bx < W; bx += 30) {
+      const brickColor = (Math.floor(bx / 30) % 2 === 0) ? '#7a3d2e' : '#6b3328';
+      ctx.fillStyle = brickColor;
+      for (let by = 0; by < GY; by += 18) {
+        const offset = (Math.floor(by / 18) % 2) * 15;
+        ctx.fillRect(bx + (offset % 30), by, 28, 16);
+      }
+    }
+    // Fire escape metal railings
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 5;
+    for (let fx = 0; fx < W; fx += 200) {
+      ctx.beginPath(); ctx.moveTo(fx, GY); ctx.lineTo(fx, GY - 120); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(fx, GY - 120); ctx.lineTo(fx + 180, GY - 120); ctx.stroke();
+    }
+    // Grates / floor metal
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, GY, W, 20);
+    ctx.strokeStyle = '#666'; ctx.lineWidth = 1;
+    for (let g = 0; g < W; g += 20) {
+      ctx.beginPath(); ctx.moveTo(g, GY); ctx.lineTo(g, GY + 20); ctx.stroke();
+    }
+  }
+
+  else if (theme === 'tower') {
+    // Skyscraper tower
+    drawSky('#0a0a1a', '#1a1a2a');
+    drawStars(80);
+    drawMoon(200, 80, 40);
+    // Glass curtain wall
+    ctx.fillStyle = '#1a2a3a';
+    ctx.fillRect(0, 0, W, GY);
+    // Reflective glass panels
+    for (let gx = 0; gx < W; gx += 60) {
+      for (let gy = 0; gy < GY; gy += 80) {
+        const isLit = ((gx + gy) % 3 !== 0);
+        ctx.fillStyle = isLit ? '#1e3040' : '#0a1a28';
+        ctx.fillRect(gx + 2, gy + 2, 54, 74);
+        if (isLit) {
+          ctx.fillStyle = 'rgba(100,180,255,0.1)';
+          ctx.fillRect(gx + 2, gy + 2, 20, 20);
+        }
+      }
+    }
+    // Red warning lights
+    for (let rl = 100; rl < W; rl += 300) {
+      ctx.fillStyle = '#ff0000';
+      ctx.shadowColor = '#ff0000'; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(rl, 30, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    drawConcrete('#1e1e1e', '#2a2a2a');
+  }
+
+  else if (theme === 'harbor') {
+    // Harbor with ships
+    drawSky('#1a2a3a', '#2a3a4a');
+    drawStars(60);
+    drawMoon(300, 70, 45);
+    drawWater();
+    // Pier
+    ctx.fillStyle = '#5c4a30';
+    ctx.fillRect(0, GY, W, 40);
+    ctx.strokeStyle = '#3d3020'; ctx.lineWidth = 2;
+    for (let dp = 0; dp < W; dp += 25) {
+      ctx.beginPath(); ctx.moveTo(dp, GY); ctx.lineTo(dp, GY + 40); ctx.stroke();
+    }
+    // Ship hulls (background)
+    for (let ship = 100; ship < W; ship += 700) {
+      ctx.fillStyle = '#2a3545';
+      ctx.beginPath();
+      ctx.moveTo(ship, GY - 80);
+      ctx.lineTo(ship + 400, GY - 80);
+      ctx.lineTo(ship + 430, GY);
+      ctx.lineTo(ship - 30, GY);
+      ctx.closePath();
+      ctx.fill();
+      // Superstructure
+      ctx.fillStyle = '#3a4555';
+      ctx.fillRect(ship + 100, GY - 160, 150, 80);
+      // Masts
+      ctx.strokeStyle = '#778899'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(ship + 175, GY - 160); ctx.lineTo(ship + 175, GY - 260); ctx.stroke();
+      // Port lights
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath(); ctx.arc(ship, GY - 90, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#00ff00';
+      ctx.beginPath(); ctx.arc(ship + 430, GY - 90, 6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  else if (theme === 'tunnel') {
+    // Dark tunnel
+    ctx.fillStyle = '#050508';
+    ctx.fillRect(0, 0, W, H);
+    // Curved tunnel walls
+    ctx.fillStyle = '#1a1a22';
+    ctx.fillRect(0, 0, W, GY);
+    // Tunnel arch pattern
+    ctx.strokeStyle = '#2a2a32'; ctx.lineWidth = 8;
+    for (let arch = 0; arch < W; arch += 200) {
+      ctx.beginPath();
+      ctx.arc(arch + 100, GY, 180, Math.PI, 0);
+      ctx.stroke();
+    }
+    // Concrete texture
+    ctx.strokeStyle = '#222228'; ctx.lineWidth = 2;
+    for (let tx = 0; tx < W; tx += 40) {
+      ctx.beginPath(); ctx.moveTo(tx, 0); ctx.lineTo(tx, GY); ctx.stroke();
+    }
+    // Tunnel lights
+    for (let tl = 100; tl < W; tl += 200) {
+      ctx.fillStyle = '#ffffcc';
+      ctx.shadowColor = '#ffff88'; ctx.shadowBlur = 40;
+      ctx.fillRect(tl - 15, GY - 25, 30, 10);
+      ctx.shadowBlur = 0;
+      // Light cone
+      ctx.fillStyle = 'rgba(255,255,150,0.05)';
+      ctx.beginPath();
+      ctx.moveTo(tl - 15, GY - 15);
+      ctx.lineTo(tl + 15, GY - 15);
+      ctx.lineTo(tl + 60, GY);
+      ctx.lineTo(tl - 60, GY);
+      ctx.closePath();
+      ctx.fill();
+    }
+    drawConcrete('#141418', '#1e1e24');
+    // Rail tracks
+    ctx.fillStyle = '#444';
+    ctx.fillRect(0, GY + 20, W, 20);
+    ctx.fillStyle = '#666';
+    ctx.fillRect(0, GY + 23, W, 4); ctx.fillRect(0, GY + 32, W, 4);
+  }
+
+  else if (theme === 'nightrun') {
+    // Night city streets
+    drawSky('#050510', '#0a0a1a');
+    drawStars(100);
+    drawMoon(W * 0.7, 60, 40);
+    drawCityBuildings(['#1a1a2a','#14141e','#1e1e2e','#22222e'], 'rgba(255,255,100,0.6)', 25, GY - 60);
+    // Neon signs on buildings
+    ['#ff0066','#00ffcc','#ff9900','#0099ff'].forEach((nc, ni) => {
+      ctx.fillStyle = nc + '99';
+      ctx.shadowColor = nc; ctx.shadowBlur = 20;
+      ctx.fillRect(ni * 400 + 150, GY - 200 + ni * 20, 80, 30);
+      ctx.shadowBlur = 0;
+    });
+    drawSidewalk();
+    drawRoad('#1e1e1e', '#ffee22');
+    // Wet road reflections
+    ctx.fillStyle = 'rgba(100,150,255,0.1)';
+    ctx.fillRect(0, GY, W, 20);
+    // Streetlights with glow
+    for (let sl = 300; sl < W; sl += 400) {
+      ctx.fillStyle = '#555'; ctx.fillRect(sl - 5, GY - 220, 10, 220);
+      ctx.fillStyle = '#ffee88';
+      ctx.shadowColor = '#ffee88'; ctx.shadowBlur = 40;
+      ctx.beginPath(); ctx.arc(sl, GY - 230, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  else if (theme === 'citynight') {
+    // City at night - final showdown
+    drawSky('#020208', '#08080f');
+    drawStars(120);
+    drawMoon(600, 50, 55);
+    drawCityBuildings(['#1a1a28','#14141e','#222235','#1c1c2c'], 'rgba(255,255,80,0.7)', 30, GY - 80);
+    // Dramatic red clouds
+    ctx.fillStyle = 'rgba(180,0,0,0.15)';
+    for (let rc = 0; rc < W; rc += 400) {
+      ctx.beginPath(); ctx.ellipse(rc + 200, 100, 200, 60, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    // Explosions/fires in background
+    for (let ef = 200; ef < W; ef += 700) {
+      const fireGrad = ctx.createRadialGradient(ef, GY - 120, 0, ef, GY - 120, 80);
+      fireGrad.addColorStop(0, 'rgba(255,200,0,0.3)');
+      fireGrad.addColorStop(0.5, 'rgba(255,80,0,0.15)');
+      fireGrad.addColorStop(1, 'rgba(255,0,0,0)');
+      ctx.fillStyle = fireGrad;
+      ctx.beginPath(); ctx.arc(ef, GY - 120, 80, 0, Math.PI * 2); ctx.fill();
+    }
+    drawSidewalk();
+    drawRoad('#141414', '#ff4400');
+    // Wet puddles reflecting red
+    ctx.fillStyle = 'rgba(200,50,0,0.12)';
+    for (let pd = 100; pd < W; pd += 300) {
+      ctx.beginPath(); ctx.ellipse(pd, GY + 12, 50, 10, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  else if (theme === 'boss') {
+    // Final boss arena
+    ctx.fillStyle = '#0a0000';
+    ctx.fillRect(0, 0, W, H);
+    // Dark red gradient sky
+    const bossGrad = ctx.createLinearGradient(0, 0, 0, GY);
+    bossGrad.addColorStop(0, '#1a0000');
+    bossGrad.addColorStop(0.5, '#3a0000');
+    bossGrad.addColorStop(1, '#5a0000');
+    ctx.fillStyle = bossGrad;
+    ctx.fillRect(0, 0, W, GY);
+    // Ominous cracked walls
+    ctx.strokeStyle = '#550000'; ctx.lineWidth = 3;
+    for (let cx = 0; cx < W; cx += 100) {
+      for (let cy = 0; cy < GY; cy += 80) {
+        ctx.strokeRect(cx, cy, 98, 78);
+      }
+    }
+    // Cracks
+    ctx.strokeStyle = '#880000'; ctx.lineWidth = 1;
+    for (let cr = 0; cr < W; cr += 300) {
+      ctx.beginPath(); ctx.moveTo(cr, 0);
+      ctx.lineTo(cr + 40, 100); ctx.lineTo(cr + 20, 200); ctx.lineTo(cr + 60, 350);
+      ctx.stroke();
+    }
+    // Fire pits
+    for (let fp = 100; fp < W; fp += 400) {
+      const fpGrad = ctx.createRadialGradient(fp, GY, 0, fp, GY, 100);
+      fpGrad.addColorStop(0, 'rgba(255,180,0,0.5)');
+      fpGrad.addColorStop(0.4, 'rgba(255,60,0,0.3)');
+      fpGrad.addColorStop(1, 'rgba(200,0,0,0)');
+      ctx.fillStyle = fpGrad;
+      ctx.beginPath(); ctx.arc(fp, GY, 100, 0, Math.PI * 2); ctx.fill();
+    }
+    // Glowing lava cracks in floor
+    ctx.fillStyle = '#222222';
+    ctx.fillRect(0, GY, W, H - GY + 200);
+    ctx.strokeStyle = '#ff4400'; ctx.lineWidth = 2;
+    for (let lc = 0; lc < W; lc += 150) {
+      ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.moveTo(lc, GY); ctx.lineTo(lc + 70, GY + 20); ctx.lineTo(lc + 140, GY + 5); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    return; // skip the generic ground draw below
+  }
+
+  else {
+    // Fallback: generic city
+    drawSky('#87ceeb', '#c8e8f8');
+    drawCityBuildings(['#b0b8c4','#9aa5b4','#c2c9d4'], 'rgba(255,255,180,0.5)');
+    drawSidewalk();
+    drawRoad('#4a4a4a', '#ffe066');
+  }
+}
+
+function drawDecorations(ctx) {
+  game.decorations.forEach(dec => {
+    if (dec.type === 'background') return;
+    
+    if (dec.type === 'sign') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 60, dec.y, 120, 80);
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(dec.x - 60, dec.y, 120, 80);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(dec.text, dec.x, dec.y + 45);
+    } else if (dec.type === 'trash') {
+      ctx.fillStyle = '#2f4f2f';
+      ctx.fillRect(dec.x - 20, dec.y, 40, 60);
+      ctx.strokeStyle = '#1f3f1f';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(dec.x - 20, dec.y, 40, 60);
+    } else if (dec.type === 'car') {
+      ctx.fillStyle = '#4a4a5e';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 50);
+      ctx.fillStyle = '#2a2a3e';
+      ctx.fillRect(dec.x - 40, dec.y - 20, 80, 20);
+      // Wheels
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(dec.x - 30, dec.y + 50, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(dec.x + 30, dec.y + 50, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (dec.type === 'crate') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 30, dec.y, 60, 80);
+      // Wood texture
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 80; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(dec.x - 30, dec.y + i);
+        ctx.lineTo(dec.x + 30, dec.y + i);
+        ctx.stroke();
+      }
+    } else if (dec.type === 'barrel') {
+      ctx.fillStyle = '#8b4513';
+      ctx.beginPath();
+      ctx.arc(dec.x, dec.y + 40, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // Bands
+      for (let i = 0; i < 3; i++) {
+        ctx.strokeStyle = '#4a4a5e';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y + 20 + i * 20, 30, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    } else if (dec.type === 'ac') {
+      ctx.fillStyle = '#696969';
+      ctx.fillRect(dec.x - 35, dec.y, 70, 70);
+      // Vents
+      ctx.strokeStyle = '#505050';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(dec.x - 30, dec.y + 15 + i * 10);
+        ctx.lineTo(dec.x + 30, dec.y + 15 + i * 10);
+        ctx.stroke();
+      }
+    } else if (dec.type === 'watertower') {
+      ctx.fillStyle = '#8b4513';
+      // Legs
+      ctx.fillRect(dec.x - 40, dec.y + 80, 15, 120);
+      ctx.fillRect(dec.x + 25, dec.y + 80, 15, 120);
+      // Tank
+      ctx.fillStyle = '#a0522d';
+      ctx.beginPath();
+      ctx.arc(dec.x, dec.y + 50, 50, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    } else if (dec.type === 'machine') {
+      ctx.fillStyle = '#2f4f4f';
+      ctx.fillRect(dec.x - 40, dec.y, 80, 100);
+      // Control panel
+      ctx.fillStyle = '#1f3f3f';
+      ctx.fillRect(dec.x - 30, dec.y + 10, 60, 40);
+      // Lights
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(dec.x - 15, dec.y + 25, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#00ff00';
+      ctx.beginPath();
+      ctx.arc(dec.x + 15, dec.y + 25, 5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (dec.type === 'chalkboard') {
+      ctx.fillStyle = '#2f4f2f';
+      ctx.fillRect(dec.x - 80, dec.y, 160, 100);
+      ctx.strokeStyle = '#6b8e23';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(dec.x - 80, dec.y, 160, 100);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('A + B = C', dec.x - 40, dec.y + 35);
+      ctx.fillText('SCIENCE', dec.x - 40, dec.y + 65);
+    } else if (dec.type === 'desk') {
+      ctx.fillStyle = '#a0522d';
+      ctx.fillRect(dec.x - 40, dec.y, 80, 40);
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 45, dec.y + 40, 90, 10);
+    } else if (dec.type === 'locker') {
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillRect(dec.x - 25, dec.y, 50, 100);
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(dec.x - 25, dec.y, 50, 100);
+      ctx.fillStyle = '#ecf0f1';
+      ctx.fillRect(dec.x - 20, dec.y + 10, 40, 20);
+      ctx.fillRect(dec.x - 20, dec.y + 50, 40, 20);
+    } else if (dec.type === 'bulletin') {
+      ctx.fillStyle = '#f5deb3';
+      ctx.fillRect(dec.x - 50, dec.y - 20, 100, 80);
+      ctx.strokeStyle = '#a0522d';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(dec.x - 50, dec.y - 20, 100, 80);
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('EVENTS', dec.x, dec.y + 5);
+    } else if (dec.type === 'bookshelf') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 40, dec.y, 80, 120);
+      ctx.fillStyle = '#d2691e';
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(dec.x - 35, dec.y + 10 + i * 25, 70, 15);
+      }
+    } else if (dec.type === 'book') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 20, dec.y, 40, 25);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dec.x - 18, dec.y + 3, 36, 19);
+    } else if (dec.type === 'table') {
+      ctx.fillStyle = '#d2b48c';
+      ctx.fillRect(dec.x - 60, dec.y, 120, 30);
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 60, dec.y + 30, 10, 30);
+      ctx.fillRect(dec.x + 50, dec.y + 30, 10, 30);
+    } else if (dec.type === 'tray') {
+      ctx.fillStyle = '#cd853f';
+      ctx.fillRect(dec.x - 30, dec.y + 10, 60, 20);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dec.x - 20, dec.y + 15, 40, 10);
+    } else if (dec.type === 'basketballHoop') {
+      ctx.fillStyle = '#ff4500';
+      ctx.fillRect(dec.x - 40, dec.y, 80, 10);
+      ctx.beginPath();
+      ctx.arc(dec.x, dec.y + 20, 20, 0, Math.PI, false);
+      ctx.strokeStyle = '#ff4500';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    } else if (dec.type === 'bench') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 20);
+      ctx.fillRect(dec.x - 40, dec.y + 20, 15, 25);
+      ctx.fillRect(dec.x + 25, dec.y + 20, 15, 25);
+    } else if (dec.type === 'labTable') {
+      ctx.fillStyle = '#bdc3c7';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 30);
+      ctx.fillStyle = '#95a5a6';
+      ctx.fillRect(dec.x - 45, dec.y + 30, 15, 30);
+      ctx.fillRect(dec.x + 30, dec.y + 30, 15, 30);
+    } else if (dec.type === 'beaker') {
+      ctx.fillStyle = '#3498db';
+      ctx.beginPath();
+      ctx.moveTo(dec.x - 15, dec.y + 30);
+      ctx.lineTo(dec.x + 15, dec.y + 30);
+      ctx.lineTo(dec.x + 10, dec.y);
+      ctx.lineTo(dec.x - 10, dec.y);
+      ctx.closePath();
+      ctx.fill();
+    } else if (dec.type === 'easel') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 5, dec.y, 10, 80);
+      ctx.beginPath();
+      ctx.moveTo(dec.x - 40, dec.y + 20);
+      ctx.lineTo(dec.x + 40, dec.y + 20);
+      ctx.lineTo(dec.x + 20, dec.y + 60);
+      ctx.lineTo(dec.x - 20, dec.y + 60);
+      ctx.closePath();
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    } else if (dec.type === 'paint') {
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(dec.x - 10, dec.y, 20, 20);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(dec.x - 8, dec.y + 5, 16, 2);
+    } else if (dec.type === 'computer') {
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(dec.x - 30, dec.y, 60, 40);
+      ctx.fillStyle = '#ecf0f1';
+      ctx.fillRect(dec.x - 25, dec.y + 5, 50, 25);
+    } else if (dec.type === 'speaker') {
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(dec.x - 20, dec.y, 40, 60);
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(dec.x, dec.y + 20, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (dec.type === 'piano') {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 40);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dec.x - 45, dec.y + 5, 90, 20);
+    } else if (dec.type === 'stage') {
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 80, dec.y, 160, 30);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(dec.x - 70, dec.y - 20, 140, 20);
+    } else if (dec.type === 'chair') {
+      ctx.fillStyle = '#a0522d';
+      ctx.fillRect(dec.x - 20, dec.y, 40, 20);
+      ctx.fillRect(dec.x - 10, dec.y + 20, 20, 30);
+    } else if (dec.type === 'tree') {
+      ctx.fillStyle = '#2e8b57';
+      ctx.beginPath();
+      ctx.arc(dec.x, dec.y - 20, 40, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(dec.x - 10, dec.y, 20, 50);
+    } else if (dec.type === 'bus') {
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 50);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(dec.x - 40, dec.y + 10, 30, 20);
+      ctx.fillRect(dec.x + 10, dec.y + 10, 30, 20);
+    } else if (dec.type === 'parkingSign') {
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(dec.x - 10, dec.y, 20, 60);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dec.x - 18, dec.y + 10, 36, 20);
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('P', dec.x, dec.y + 25);
+    } else if (dec.type === 'camera') {
+      ctx.fillStyle = '#34495e';
+      ctx.fillRect(dec.x - 15, dec.y, 30, 20);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(dec.x - 5, dec.y + 5, 10, 10);
+    } else if (dec.type === 'poster') {
+      ctx.fillStyle = '#ff6f61';
+      ctx.fillRect(dec.x - 25, dec.y - 40, 50, 60);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('SHOW', dec.x, dec.y - 15);
+    } else if (dec.type === 'pipe') {
+      ctx.fillStyle = '#4682b4';
+      ctx.fillRect(dec.x - 15, dec.y, 30, 400);
+      // Pipe segments
+      ctx.strokeStyle = '#36648b';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 400; i += 50) {
+        ctx.beginPath();
+        ctx.moveTo(dec.x - 15, dec.y + i);
+        ctx.lineTo(dec.x + 15, dec.y + i);
+        ctx.stroke();
+      }
+    } else if (dec.type === 'container') {
+      ctx.fillStyle = '#ff6347';
+      ctx.fillRect(dec.x - 60, dec.y, 120, 100);
+      ctx.strokeStyle = '#cd5c5c';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(dec.x - 60, dec.y, 120, 100);
+      // Door
+      ctx.strokeStyle = '#8b0000';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(dec.x, dec.y);
+      ctx.lineTo(dec.x, dec.y + 100);
+      ctx.stroke();
+    } else if (dec.type === 'tank') {
+      ctx.fillStyle = '#2f4f2f';
+      ctx.fillRect(dec.x - 60, dec.y + 40, 120, 40);
+      // Turret
+      ctx.fillRect(dec.x - 30, dec.y + 20, 60, 20);
+      // Barrel
+      ctx.fillRect(dec.x + 30, dec.y + 25, 40, 10);
+      // Tracks
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(dec.x - 60, dec.y + 75, 120, 10);
+    } else if (dec.type === 'barrier') {
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(dec.x - 50, dec.y, 100, 80);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dec.x - 40, dec.y + 10, 80, 20);
+      ctx.fillRect(dec.x - 40, dec.y + 50, 80, 20);
+    }
+  });
+}
+
+function drawCharacter(ctx, char, isPlayer) {
+  const x = char.x;
+  const y = char.y - char.height;
+  
+  ctx.save();
+  
+  if (!char.facingRight) {
+    ctx.translate(x, 0);
+    ctx.scale(-1, 1);
+    ctx.translate(-x, 0);
+  }
+  
+  // Body
+  ctx.fillStyle = isPlayer ? '#0000ff' : char.color;
+  ctx.fillRect(x - char.width/2 + 10, y + 30, char.width - 20, char.height - 50);
+  
+  // Head
+  ctx.fillStyle = '#ffdbac';
+  ctx.beginPath();
+  ctx.arc(x, y + 20, char.width/3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eyes
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x - 8, y + 15, 5, 5);
+  ctx.fillRect(x + 3, y + 15, 5, 5);
+  
+  // Arms
+  ctx.fillStyle = '#ffdbac';
+  
+  if (char.state === 'shoot' && ((isPlayer && game.player.currentWeapon) || (!isPlayer && char.hasGun))) {
+    // Shooting pose
+    ctx.fillRect(x + char.width/2 - 10, y + 40, 15, 40);
+    ctx.fillRect(x - char.width/2 - 5, y + 40, 15, 40);
+    
+    // Gun
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + char.width/2 + 5, y + 45, 30, 10);
+    ctx.fillStyle = '#666';
+    ctx.fillRect(x + char.width/2, y + 48, 10, 4);
+    
+    // Muzzle flash
+    if (char.animFrame === 0) {
+      ctx.fillStyle = '#ffff00';
+      ctx.beginPath();
+      ctx.arc(x + char.width/2 + 35, y + 50, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (char.state === 'attack') {
+    // Punching pose
+    ctx.fillRect(x + char.width/2, y + 40, 30, 15);
+    ctx.fillRect(x - char.width/2 - 5, y + 40, 15, 40);
+  } else if (char.state === 'kick') {
+    // Kicking pose
+    ctx.fillRect(x + char.width/2 - 10, y + 40, 15, 40);
+    ctx.fillRect(x - char.width/2 - 5, y + 40, 15, 40);
+    // Leg extended
+    ctx.fillStyle = isPlayer ? '#0000ff' : char.color;
+    ctx.fillRect(x + char.width/2, y + 60, 40, 15);
+  } else {
+    // Normal arms
+    ctx.fillRect(x + char.width/2 - 10, y + 40, 15, 40);
+    ctx.fillRect(x - char.width/2 - 5, y + 40, 15, 40);
+  }
+  
+  // Legs
+  ctx.fillStyle = isPlayer ? '#0000ff' : char.color;
+  if (char.state === 'walk' || char.state === 'run') {
+    const legOffset = Math.sin(char.animFrame * 0.5) * 10;
+    ctx.fillRect(x - char.width/4, y + char.height - 20 + legOffset, 12, 20);
+    ctx.fillRect(x + char.width/4 - 12, y + char.height - 20 - legOffset, 12, 20);
+  } else {
+    ctx.fillRect(x - char.width/4, y + char.height - 20, 12, 20);
+    ctx.fillRect(x + char.width/4 - 12, y + char.height - 20, 12, 20);
+  }
+  
+  // Armor indicator
+  if (!isPlayer && char.armor > 0) {
+    ctx.strokeStyle = '#4a4a5e';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x - char.width/2 + 10, y + 30, char.width - 20, char.height - 50);
+  }
+  
+  // Stunned effect
+  if (char.stunned) {
+    ctx.fillStyle = '#ffff00';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('⭐', x - 20, y);
+    ctx.fillText('⭐', x + 20, y);
+  }
+  
+  // Blinded effect
+  if (!isPlayer && char.blinded) {
+    ctx.fillStyle = '#808080';
+    ctx.globalAlpha = 0.5;
+    ctx.fillRect(x - char.width/2, y, char.width, char.height);
+    ctx.globalAlpha = 1;
+  }
+  
+  ctx.restore();
+}
+
+function drawHUD(ctx) {
+  // Health
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(20, 20, 400, 60);
+  ctx.font = '30px Arial';
+  ctx.textAlign = 'left';
+  for (let i = 0; i < game.player.maxHealth; i++) {
+    ctx.fillText(i < game.player.health ? '❤️' : '🖤', 30 + i * 40, 55);
+  }
+  
+  // Score
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(CONFIG.CANVAS_WIDTH - 320, 20, 300, 60);
+  ctx.fillStyle = '#ffff00';
+  ctx.font = 'bold 28px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(`SCORE: ${game.player.score}`, CONFIG.CANVAS_WIDTH - 30, 55);
+  ctx.textAlign = 'left';
+  
+  // Secret mini-level timer
+  if (game.inSecret) {
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 150, 20, 300, 60);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    const secondsLeft = Math.ceil(game.secretTimer / 60);
+    ctx.fillText(`TIME: ${secondsLeft}s`, CONFIG.CANVAS_WIDTH / 2, 55);
+    
+    const coinsLeft = game.secretCoins.filter(c => !c.collected).length;
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(`COINS: ${coinsLeft}`, CONFIG.CANVAS_WIDTH / 2, 100);
+    ctx.textAlign = 'left';
+  }
+  
+  // Jump charge indicator
+  if (game.player.jumpChargeTime > 0) {
+    const chargePercent = game.player.jumpChargeTime / game.player.maxJumpCharge;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 100, CONFIG.CANVAS_HEIGHT - 100, 200, 30);
+    ctx.fillStyle = '#00ff00';
+    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 95, CONFIG.CANVAS_HEIGHT - 95, 190 * chargePercent, 20);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SUPER JUMP CHARGING!', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 110);
+    ctx.textAlign = 'left';
+  }
+  
+  // Weapon Slots Inventory
+  if (!game.inSecret) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(20, 100, 320, 200);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('WEAPON SLOTS (Q to switch):', 30, 125);
+    
+    // Draw 4 weapon slots
+    for (let i = 0; i < 4; i++) {
+      const slotX = 30 + (i % 2) * 150;
+      const slotY = 145 + Math.floor(i / 2) * 70;
+      
+      // Slot background
+      const isSelected = game.player.currentSlot === i;
+      ctx.fillStyle = isSelected ? 'rgba(255, 255, 0, 0.3)' : 'rgba(100, 100, 100, 0.3)';
+      ctx.fillRect(slotX, slotY, 140, 60);
+      
+      // Slot border
+      ctx.strokeStyle = isSelected ? '#ffff00' : '#666';
+      ctx.lineWidth = isSelected ? 3 : 2;
+      ctx.strokeRect(slotX, slotY, 140, 60);
+      
+      // Slot number
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`SHIFT+${i+1}`, slotX + 5, slotY + 15);
+      
+      // Weapon info
+      const weapon = game.player.weaponSlots[i];
+      if (weapon) {
+        const weaponData = WEAPONS[weapon.type];
+        ctx.fillStyle = weaponData.color;
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(`${weaponData.icon} ${weapon.type}`, slotX + 10, slotY + 38);
+        
+        // Ammo bar
+        const ammoPercent = weapon.ammo / weaponData.maxAmmo;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(slotX + 10, slotY + 45, 120, 8);
+        ctx.fillStyle = ammoPercent > 0.3 ? '#00ff00' : '#ff0000';
+        ctx.fillRect(slotX + 10, slotY + 45, 120 * ammoPercent, 8);
+        
+        // Ammo text
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Arial';
+        ctx.fillText(`${weapon.ammo}/${weaponData.maxAmmo}`, slotX + 50, slotY + 52);
+      } else {
+        ctx.fillStyle = '#666';
+        ctx.font = '16px Arial';
+        ctx.fillText('EMPTY', slotX + 40, slotY + 38);
+      }
+    }
+  }
+  
+  // Grenades
+  if (!game.inSecret) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(20, 320, 280, 120);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('GRENADES (1-4):', 30, 345);
+    
+    const grenadeTypes = ['FRAG', 'FIRE', 'SMOKE', 'FLASH'];
+    grenadeTypes.forEach((type, i) => {
+      const selected = game.player.currentGrenade === type;
+      ctx.fillStyle = selected ? '#ffff00' : '#fff';
+      ctx.fillText(`${i+1}. ${GRENADES[type].icon} ${type}: ${game.player.grenades[type]}`, 30, 375 + i * 20);
+    });
+  }
+  
+  // Level info
+  if (!game.inSecret) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 200, 20, 400, 50);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`LEVEL ${game.currentLevel}: ${LEVEL_NAMES[game.currentLevel]}`, CONFIG.CANVAS_WIDTH / 2, 50);
+    ctx.textAlign = 'left';
+    
+    // Secret key indicator
+    if (game.hasSecretKey) {
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+      ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 200, 75, 400, 35);
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔑 SECRET KEY OBTAINED! Find the secret area!', CONFIG.CANVAS_WIDTH / 2, 97);
+      ctx.textAlign = 'left';
+    }
+    
+    // Enemies remaining
+    const enemiesAlive = game.enemies.filter(e => !e.dead).length;
+    if (enemiesAlive > 0) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(CONFIG.CANVAS_WIDTH - 250, 100, 230, 50);
+      ctx.fillStyle = '#ff0000';
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(`ENEMIES: ${enemiesAlive}`, CONFIG.CANVAS_WIDTH - 30, 130);
+      ctx.textAlign = 'left';
+    }
+  }
+  
+  // Controls hint
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(20, CONFIG.CANVAS_HEIGHT - 80, 700, 60);
+  ctx.fillStyle = '#fff';
+  ctx.font = '14px Arial';
+  if (game.inSecret) {
+    ctx.fillText('SECRET MINI-LEVEL! Collect all coins before time runs out!', 30, CONFIG.CANVAS_HEIGHT - 45);
+  } else {
+    ctx.fillText('← → Move | Z Jump (HOLD=SUPER) | X Punch | A Kick | S Shoot | G Grenade | E Secret', 30, CONFIG.CANVAS_HEIGHT - 50);
+    ctx.fillText('Q Switch Weapon | SHIFT+1-4 Select Slot | 1-4 Select Grenade', 30, CONFIG.CANVAS_HEIGHT - 30);
+  }
+}
+
+// ============================================================================
+// START
+// ============================================================================
+function togglePause() {
+  // Toggle pause state
+  game.paused = !game.paused;
+  if (game.paused) {
+    // Pause audio by suspending context if available
+    try { game.audioContext && game.audioContext.suspend(); } catch (e) {}
+  } else {
+    try { game.audioContext && game.audioContext.resume(); } catch (e) {}
+  }
+}
+
+function renderPauseOverlay(ctx) {
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+  ctx.fillStyle = '#ffff00';
+  ctx.font = 'bold 72px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('PAUSED', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40);
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('Press ESC to resume', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 + 20);
+}
+
+function renderGameOverOverlay(ctx) {
+  ctx.fillStyle = 'rgba(0,0,0,0.8)';
+  ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+  ctx.fillStyle = '#ff3333';
+  ctx.font = 'bold 64px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('GAME OVER', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40);
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('Press ENTER to return to map', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 + 20);
+}
+
+function drawBossUI(ctx) {
+  const boss = game.enemies.find(e => e.type === 'BOSS' && !e.dead);
+  if (!boss) return;
+
+  // Large health bar at top center
+  const barW = Math.min(CONFIG.CANVAS_WIDTH - 200, 1000);
+  const barH = 36;
+  const x = (CONFIG.CANVAS_WIDTH - barW) / 2;
+  const y = 20;
+
+  // Background
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(x - 6, y - 6, barW + 12, barH + 42);
+
+  // Name and phase
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`FINAL BOSS - Phase ${boss.phase}`, x + 10, y + 22);
+
+  // Health bar
+  const healthPct = Math.max(0, boss.health / boss.maxHealth);
+  ctx.fillStyle = '#444';
+  ctx.fillRect(x + 10, y + 30, barW - 20, barH);
+  ctx.fillStyle = boss.phase >= 3 ? '#ffcc00' : '#ff4444';
+  ctx.fillRect(x + 10, y + 30, (barW - 20) * healthPct, barH);
+
+  // Phase aura indicator
+  if (boss.enraged || boss.aura > 0) {
+    ctx.fillStyle = 'rgba(255,255,0,0.12)';
+    ctx.fillRect(x - 50, y - 20, barW + 100, barH + 80);
+  }
+
+  // If boss has aura around its sprite, draw a screen-space glow
+  if (boss.aura && boss.aura > 0) {
+    ctx.fillStyle = `rgba(255, 215, 0, ${Math.min(0.6, boss.aura)})`;
+    ctx.beginPath();
+    ctx.arc((boss.x - game.camera.x), boss.y - boss.height / 2, 120 * boss.aura, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (boss.phase === 4) {
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('FINAL RAGE - FISTS ONLY!', CONFIG.CANVAS_WIDTH / 2, y + barH + 70);
+    ctx.fillStyle = '#fff';
+    ctx.font = '18px Arial';
+    ctx.fillText('Use PUNCH / KICK to deal heavy damage', CONFIG.CANVAS_WIDTH / 2, y + barH + 100);
+    ctx.textAlign = 'left';
+  }
+}
+
+function renderBossIntroOverlay(ctx) {
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+  ctx.fillStyle = '#ffff00';
+  ctx.font = 'bold 72px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('FINAL BOSS APPROACHES', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40);
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('THE ANGRY WARDEN EMERGES...', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 + 10);
+  ctx.fillText('Yellow aura means he is enraged.', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 + 50);
+  ctx.fillText('Wait for the music, then fight with your fists!', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 + 90);
+}
+window.addEventListener('load', () => {
+  init();
+});
+
+</script>
+</body>
+</html>
